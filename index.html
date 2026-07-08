@@ -3,1236 +3,793 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>openEHR Reference Model Glossary Explorer</title>
+<title>openEHR RM Glossary Explorer</title>
 <style>
 :root {
-    /* Dark theme (default) */
-    --bg-primary: #0d1117;
-    --bg-secondary: #161b22;
-    --bg-tertiary: #21262d;
-    --bg-hover: #30363d;
-    --bg-active: #1f6feb22;
-    --border: #30363d;
-    --border-light: #21262d;
-    --text-primary: #f0f6fc;
-    --text-secondary: #c9d1d9;
-    --text-tertiary: #8b949e;
-    --text-muted: #6e7681;
-    --accent: #58a6ff;
-    --accent-hover: #79c0ff;
-    --accent-bg: #1f6feb22;
-    --mandatory: #3fb950;
-    --mandatory-bg: #3fb95020;
-    --optional: #d29922;
-    --optional-bg: #d2992220;
-    --abstract-color: #bc8cff;
-    --interface-color: #f778ba;
-    --enum-color: #ffa657;
-    --class-color: #58a6ff;
-    --inherited-border: #30363d;
-    --inherited-bg: #161b2280;
-    --scrollbar-track: #161b22;
-    --scrollbar-thumb: #30363d;
-    --shadow: 0 1px 3px rgba(0,0,0,0.4);
-    --expand-btn: #30363d;
-    --expand-btn-hover: #484f58;
-    --inline-tree-bg: #1c2128;
-    --inline-tree-border: #30363d;
-    --fn-color: #d2a8ff;
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-tertiary: #242836;
+  --bg-hover: #2d3245;
+  --bg-active: #353a50;
+  --text-primary: #f0f0f5;
+  --text-secondary: #c0c4d6;
+  --text-muted: #8a8fa8;
+  --border-color: #3a3f55;
+  --accent: #6c8cff;
+  --accent-hover: #8aa4ff;
+  --accent-dim: #3a4a80;
+  --green: #4cdf8b;
+  --green-bg: rgba(76,223,139,0.12);
+  --amber: #f0b040;
+  --amber-bg: rgba(240,176,64,0.12);
+  --red: #f06060;
+  --tag-class: #6c8cff;
+  --tag-abstract: #c084fc;
+  --tag-interface: #34d399;
+  --tag-enum: #f0b040;
+  --highlight-bg: #5a4a00;
+  --highlight-text: #ffe066;
+  --scrollbar-track: #1a1d27;
+  --scrollbar-thumb: #3a3f55;
+  --shadow: 0 2px 12px rgba(0,0,0,0.4);
+  --inherited-border: #4a4f65;
 }
-
 [data-theme="light"] {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f6f8fa;
-    --bg-tertiary: #eaeef2;
-    --bg-hover: #d0d7de;
-    --bg-active: #0969da15;
-    --border: #d0d7de;
-    --border-light: #eaeef2;
-    --text-primary: #1f2328;
-    --text-secondary: #32383f;
-    --text-tertiary: #57606a;
-    --text-muted: #6e7781;
-    --accent: #0969da;
-    --accent-hover: #0550ae;
-    --accent-bg: #0969da15;
-    --mandatory: #1a7f37;
-    --mandatory-bg: #1a7f3715;
-    --optional: #9a6700;
-    --optional-bg: #9a670015;
-    --abstract-color: #8250df;
-    --interface-color: #bf3989;
-    --enum-color: #bc4c00;
-    --class-color: #0969da;
-    --inherited-border: #d0d7de;
-    --inherited-bg: #f6f8fa;
-    --scrollbar-track: #f6f8fa;
-    --scrollbar-thumb: #d0d7de;
-    --shadow: 0 1px 3px rgba(0,0,0,0.1);
-    --expand-btn: #eaeef2;
-    --expand-btn-hover: #d0d7de;
-    --inline-tree-bg: #f6f8fa;
-    --inline-tree-border: #d0d7de;
-    --fn-color: #8250df;
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-/* Header */
-.header {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-    gap: 12px;
-}
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.header h1 {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
-    white-space: nowrap;
-}
-.header-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 11px;
-    color: var(--text-tertiary);
-}
-.header-meta .badge {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 11px;
-}
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.toggle-btn {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    padding: 4px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.15s;
-    white-space: nowrap;
-}
-.toggle-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-.toggle-btn.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
-
-/* Main layout */
-.main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-}
-
-/* Left panel */
-.left-panel {
-    width: 280px;
-    min-width: 200px;
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    background: var(--bg-secondary);
-    flex-shrink: 0;
-}
-.search-box {
-    padding: 10px;
-    border-bottom: 1px solid var(--border);
-}
-.search-box input {
-    width: 100%;
-    background: var(--bg-primary);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    padding: 7px 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    outline: none;
-}
-.search-box input:focus { border-color: var(--accent); }
-.search-box input::placeholder { color: var(--text-muted); }
-.filter-bar {
-    display: flex;
-    gap: 4px;
-    padding: 6px 10px;
-    border-bottom: 1px solid var(--border);
-    flex-wrap: wrap;
-}
-.filter-btn {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    color: var(--text-tertiary);
-    padding: 2px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 11px;
-    transition: all 0.15s;
-}
-.filter-btn:hover { color: var(--text-primary); }
-.filter-btn.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
-.stats-bar {
-    padding: 4px 10px;
-    font-size: 11px;
-    color: var(--text-muted);
-    border-bottom: 1px solid var(--border);
-}
-.class-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 4px 0;
-}
-.class-item {
-    padding: 6px 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    transition: background 0.1s;
-    border-left: 3px solid transparent;
-}
-.class-item:hover { background: var(--bg-hover); color: var(--text-primary); }
-.class-item.active { background: var(--bg-active); border-left-color: var(--accent); color: var(--text-primary); font-weight: 500; }
-.class-item .type-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-.class-item .type-dot.abstract { background: var(--abstract-color); }
-.class-item .type-dot.interface { background: var(--interface-color); }
-.class-item .type-dot.enum { background: var(--enum-color); }
-.class-item .type-dot.class { background: var(--class-color); }
-
-/* Center panel */
-.center-panel {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    min-width: 0;
-}
-
-/* Navigation bar */
-.nav-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 16px;
-}
-.nav-btn {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    color: var(--text-tertiary);
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    transition: all 0.15s;
-    position: relative;
-}
-.nav-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
-.nav-btn:disabled { opacity: 0.3; cursor: default; }
-.nav-btn .tooltip {
-    display: none;
-    position: absolute;
-    bottom: -28px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    white-space: nowrap;
-    z-index: 10;
-    pointer-events: none;
-}
-.nav-btn:hover .tooltip { display: block; }
-.breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: var(--text-muted);
-    flex-wrap: wrap;
-}
-.breadcrumb a {
-    color: var(--accent);
-    text-decoration: none;
-    cursor: pointer;
-}
-.breadcrumb a:hover { text-decoration: underline; }
-
-/* Class header */
-.class-header {
-    margin-bottom: 20px;
-}
-.class-title-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
-}
-.class-title {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-.type-badge {
-    padding: 2px 10px;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.type-badge.abstract { background: var(--abstract-color)22; color: var(--abstract-color); border: 1px solid var(--abstract-color)44; }
-.type-badge.interface { background: var(--interface-color)22; color: var(--interface-color); border: 1px solid var(--interface-color)44; }
-.type-badge.enum { background: var(--enum-color)22; color: var(--enum-color); border: 1px solid var(--enum-color)44; }
-.type-badge.class { background: var(--class-color)22; color: var(--class-color); border: 1px solid var(--class-color)44; }
-.class-desc {
-    font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin-bottom: 10px;
-    max-width: 800px;
-}
-.class-links {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    font-size: 12px;
-}
-.class-links a {
-    color: var(--accent);
-    text-decoration: none;
-}
-.class-links a:hover { text-decoration: underline; }
-.class-meta-row {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    font-size: 12px;
-    color: var(--text-tertiary);
-    margin-top: 8px;
-}
-.class-meta-row span { display: flex; align-items: center; gap: 4px; }
-
-/* Section */
-.section {
-    margin-bottom: 16px;
-}
-.section-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 0;
-    cursor: pointer;
-    user-select: none;
-}
-.section-header .arrow {
-    font-size: 10px;
-    color: var(--text-muted);
-    transition: transform 0.15s;
-    width: 14px;
-    text-align: center;
-}
-.section-header .arrow.open { transform: rotate(90deg); }
-.section-header h3 {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.section-header .count {
-    font-size: 11px;
-    color: var(--text-muted);
-    background: var(--bg-tertiary);
-    padding: 1px 6px;
-    border-radius: 8px;
-}
-.section-body { padding-left: 4px; }
-
-/* Attribute row */
-.attr-row {
-    display: flex;
-    align-items: flex-start;
-    padding: 5px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.1s;
-    gap: 8px;
-    min-height: 30px;
-}
-.attr-row:hover { background: var(--bg-hover); }
-.attr-row.active { background: var(--accent-bg); }
-.attr-row.inherited {
-    border-left: 2px solid var(--inherited-border);
-    margin-left: 4px;
-    padding-left: 10px;
-}
-.attr-expand-btn {
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 9px;
-    color: var(--text-muted);
-    background: var(--expand-btn);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    cursor: pointer;
-    flex-shrink: 0;
-    margin-top: 1px;
-    transition: all 0.15s;
-}
-.attr-expand-btn:hover { background: var(--expand-btn-hover); color: var(--text-primary); }
-.attr-expand-btn.open { transform: rotate(90deg); }
-.attr-expand-placeholder { width: 18px; flex-shrink: 0; }
-.attr-name {
-    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-    font-size: 13px;
-    color: var(--text-primary);
-    font-weight: 500;
-    flex-shrink: 0;
-}
-.attr-existence {
-    font-size: 11px;
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-weight: 600;
-    font-family: monospace;
-    flex-shrink: 0;
-}
-.attr-existence.mandatory { background: var(--mandatory-bg); color: var(--mandatory); }
-.attr-existence.optional { background: var(--optional-bg); color: var(--optional); }
-.attr-type {
-    font-size: 12px;
-    color: var(--text-tertiary);
-    font-family: monospace;
-}
-.attr-type a {
-    color: var(--accent);
-    text-decoration: none;
-    cursor: pointer;
-}
-.attr-type a:hover { text-decoration: underline; }
-.attr-from {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-style: italic;
-    margin-left: auto;
-    flex-shrink: 0;
-}
-.attr-from a {
-    color: var(--accent);
-    text-decoration: none;
-    cursor: pointer;
-    font-style: italic;
-}
-.attr-from a:hover { text-decoration: underline; }
-
-/* Function row */
-.fn-row {
-    display: flex;
-    align-items: flex-start;
-    padding: 5px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.1s;
-    gap: 8px;
-    min-height: 30px;
-}
-.fn-row:hover { background: var(--bg-hover); }
-.fn-row.active { background: var(--accent-bg); }
-.fn-row.inherited {
-    border-left: 2px solid var(--inherited-border);
-    margin-left: 4px;
-    padding-left: 10px;
-}
-.fn-name {
-    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-    font-size: 12px;
-    color: var(--fn-color);
-    font-weight: 500;
-}
-.fn-return {
-    font-size: 12px;
-    color: var(--text-tertiary);
-    font-family: monospace;
-}
-.fn-return a {
-    color: var(--accent);
-    text-decoration: none;
-    cursor: pointer;
-}
-.fn-return a:hover { text-decoration: underline; }
-.fn-from {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-style: italic;
-    margin-left: auto;
-    flex-shrink: 0;
-}
-.fn-from a {
-    color: var(--accent);
-    text-decoration: none;
-    cursor: pointer;
-    font-style: italic;
-}
-.fn-from a:hover { text-decoration: underline; }
-
-/* Inline expanded tree */
-.inline-tree {
-    margin-left: 26px;
-    padding: 4px 0 4px 12px;
-    border-left: 2px solid var(--inline-tree-border);
-    background: var(--inline-tree-bg);
-    border-radius: 0 6px 6px 0;
-    margin-bottom: 2px;
-}
-
-/* Right panel */
-.right-panel {
-    width: 320px;
-    min-width: 220px;
-    border-left: 1px solid var(--border);
-    background: var(--bg-secondary);
-    overflow-y: auto;
-    padding: 16px;
-    flex-shrink: 0;
-}
-.detail-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 12px;
-    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-    word-break: break-all;
-}
-.detail-section {
-    margin-bottom: 12px;
-}
-.detail-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-}
-.detail-value {
-    font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-}
-.detail-value a {
-    color: var(--accent);
-    text-decoration: none;
-    cursor: pointer;
-}
-.detail-value a:hover { text-decoration: underline; }
-.detail-placeholder {
-    color: var(--text-muted);
-    font-size: 13px;
-    font-style: italic;
-    margin-top: 40px;
-    text-align: center;
-}
-
-/* About modal */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-}
-.modal-overlay.show { display: flex; }
-.modal {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    max-width: 500px;
-    width: 90%;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-}
-.modal h2 { font-size: 18px; margin-bottom: 12px; color: var(--text-primary); }
-.modal p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px; }
-.modal .close-btn {
-    margin-top: 12px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    padding: 6px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 8px; }
+  --bg-primary: #f5f6fa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #ebedf5;
+  --bg-hover: #e0e3ef;
+  --bg-active: #d0d4e4;
+  --text-primary: #1a1d2e;
+  --text-secondary: #3a3f55;
+  --text-muted: #6a6f85;
+  --border-color: #d0d4e0;
+  --accent: #4a6cf7;
+  --accent-hover: #3a5ce7;
+  --accent-dim: #c0ccf7;
+  --green: #1a9a55;
+  --green-bg: rgba(26,154,85,0.1);
+  --amber: #b07800;
+  --amber-bg: rgba(176,120,0,0.1);
+  --red: #d04040;
+  --tag-class: #4a6cf7;
+  --tag-abstract: #8b5cf6;
+  --tag-interface: #059669;
+  --tag-enum: #b07800;
+  --highlight-bg: #fff3b0;
+  --highlight-text: #6a4c00;
+  --scrollbar-track: #ebedf5;
+  --scrollbar-thumb: #c0c4d6;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --inherited-border: #b0b4c4;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+::-webkit-scrollbar { width: 7px; }
 ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
 ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-/* Empty state */
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: var(--text-muted);
-    font-size: 14px;
-    gap: 8px;
-}
-.empty-state .icon { font-size: 40px; opacity: 0.4; }
+/* Header */
+.header { display: flex; align-items: center; gap: 12px; padding: 10px 20px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); flex-shrink: 0; min-height: 50px; }
+.header h1 { font-size: 16px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+.header .rm-version { font-size: 11px; color: var(--text-muted); background: var(--bg-tertiary); padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+.header .extraction-date { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.header-spacer { flex: 1; }
+.header-btn { background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; white-space: nowrap; transition: all 0.15s; }
+.header-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.header-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+
+/* Main layout */
+.main { display: flex; flex: 1; overflow: hidden; }
+
+/* Left panel */
+.left-panel { width: 280px; min-width: 200px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); background: var(--bg-secondary); }
+.search-box { padding: 10px; border-bottom: 1px solid var(--border-color); }
+.search-box input { width: 100%; padding: 7px 10px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 13px; outline: none; }
+.search-box input:focus { border-color: var(--accent); }
+.search-box input::placeholder { color: var(--text-muted); }
+
+/* Search field toggles */
+.search-fields { padding: 6px 10px; border-bottom: 1px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 4px; }
+.search-field-btn { font-size: 10px; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+.search-field-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.search-field-btn:hover { background: var(--bg-hover); }
+
+/* Type filters */
+.type-filters { padding: 6px 10px; border-bottom: 1px solid var(--border-color); display: flex; gap: 4px; flex-wrap: wrap; }
+.type-filter-btn { font-size: 10px; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+.type-filter-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.type-filter-btn:hover { background: var(--bg-hover); }
+
+.stats-bar { padding: 4px 10px; font-size: 10px; color: var(--text-muted); border-bottom: 1px solid var(--border-color); }
+.class-list { flex: 1; overflow-y: auto; }
+.class-item { padding: 6px 10px; cursor: pointer; border-bottom: 1px solid var(--border-color); transition: background 0.1s; display: flex; align-items: center; gap: 6px; }
+.class-item:hover { background: var(--bg-hover); }
+.class-item.active { background: var(--bg-active); border-left: 3px solid var(--accent); }
+.class-item .class-name { font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.class-item .class-tag { font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: 600; text-transform: uppercase; white-space: nowrap; }
+.tag-class { background: rgba(108,140,255,0.15); color: var(--tag-class); }
+.tag-abstract { background: rgba(192,132,252,0.15); color: var(--tag-abstract); }
+.tag-interface { background: rgba(52,211,153,0.15); color: var(--tag-interface); }
+.tag-enum { background: rgba(240,176,64,0.15); color: var(--tag-enum); }
+
+/* Center panel */
+.center-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 300px; }
+.center-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border-color); background: var(--bg-secondary); flex-shrink: 0; }
+.nav-btn { background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-muted); width: 30px; height: 28px; border-radius: 5px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; position: relative; }
+.nav-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+.nav-btn .tooltip { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6px; padding: 4px 8px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 11px; color: var(--text-secondary); white-space: nowrap; z-index: 100; pointer-events: none; }
+.nav-btn:hover .tooltip { display: block; }
+.breadcrumb { display: flex; align-items: center; gap: 4px; flex: 1; overflow-x: auto; white-space: nowrap; font-size: 12px; }
+.breadcrumb a { color: var(--accent); text-decoration: none; cursor: pointer; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb .sep { color: var(--text-muted); }
+.center-content { flex: 1; overflow-y: auto; padding: 16px; }
+.class-header { margin-bottom: 16px; }
+.class-header h2 { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.class-header .desc { font-size: 13px; color: var(--text-secondary); margin-top: 8px; line-height: 1.5; }
+.class-header .spec-link { font-size: 11px; color: var(--accent); text-decoration: none; margin-top: 4px; display: inline-block; }
+.class-header .spec-link:hover { text-decoration: underline; }
+.specializations { margin-top: 8px; font-size: 12px; color: var(--text-muted); }
+.specializations a { color: var(--accent); cursor: pointer; text-decoration: none; }
+.specializations a:hover { text-decoration: underline; }
+
+/* Tree sections */
+.tree-section { margin-bottom: 16px; }
+.tree-section-header { display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer; user-select: none; }
+.tree-section-header .arrow { font-size: 10px; color: var(--text-muted); transition: transform 0.15s; width: 14px; }
+.tree-section-header .arrow.open { transform: rotate(90deg); }
+.tree-section-header .title { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+.tree-section-header .count { font-size: 11px; color: var(--text-muted); }
+.tree-section-body { padding-left: 4px; }
+.tree-section-body.collapsed { display: none; }
+
+/* Attribute rows */
+.attr-row { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 5px; cursor: pointer; transition: background 0.1s; min-height: 28px; }
+.attr-row:hover { background: var(--bg-hover); }
+.attr-row.selected { background: var(--bg-active); }
+.attr-row.inherited { border-left: 2px solid var(--inherited-border); margin-left: 4px; padding-left: 6px; }
+.attr-expand-btn { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--text-muted); cursor: pointer; flex-shrink: 0; border-radius: 3px; transition: all 0.15s; }
+.attr-expand-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.attr-expand-btn.open { transform: rotate(90deg); }
+.attr-expand-btn.placeholder { visibility: hidden; }
+.attr-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+.attr-existence { font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: 600; white-space: nowrap; }
+.attr-existence.mandatory { background: var(--green-bg); color: var(--green); }
+.attr-existence.optional { background: var(--amber-bg); color: var(--amber); }
+.attr-type { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.attr-type a { color: var(--accent); text-decoration: none; cursor: pointer; }
+.attr-type a:hover { text-decoration: underline; }
+.attr-from { font-size: 10px; color: var(--text-muted); font-style: italic; white-space: nowrap; }
+.attr-from a { color: var(--accent); cursor: pointer; text-decoration: none; }
+.attr-from a:hover { text-decoration: underline; }
+
+/* Inline expanded children */
+.inline-children { padding-left: 20px; border-left: 1px dashed var(--border-color); margin-left: 7px; margin-top: 2px; margin-bottom: 2px; }
+.inline-class-label { font-size: 11px; color: var(--text-muted); padding: 2px 8px; font-style: italic; }
+
+/* Right panel */
+.right-panel { width: 300px; min-width: 200px; border-left: 1px solid var(--border-color); background: var(--bg-secondary); display: flex; flex-direction: column; overflow: hidden; }
+.right-header { padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+.right-content { flex: 1; overflow-y: auto; padding: 16px; }
+.detail-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; margin-top: 12px; }
+.detail-label:first-child { margin-top: 0; }
+.detail-value { font-size: 13px; color: var(--text-primary); line-height: 1.5; }
+.detail-value a { color: var(--accent); text-decoration: none; cursor: pointer; }
+.detail-value a:hover { text-decoration: underline; }
+.empty-state { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px; }
+
+/* Search highlight */
+.search-hl { background: var(--highlight-bg); color: var(--highlight-text); border-radius: 2px; padding: 0 1px; }
+
+/* About modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; max-width: 480px; width: 90%; box-shadow: var(--shadow); }
+.modal h3 { font-size: 18px; margin-bottom: 12px; color: var(--accent); }
+.modal p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px; }
+.modal a { color: var(--accent); }
+.modal .close-btn { margin-top: 16px; padding: 6px 16px; background: var(--accent); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.modal .close-btn:hover { background: var(--accent-hover); }
+
+/* Keyboard hint */
+.kbd { font-size: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 1px 4px; border-radius: 3px; color: var(--text-muted); font-family: monospace; }
 </style>
 </head>
 <body>
-<script src="glossary_data.js"></script>
+<script src="https://martinkochdesign.github.io/archetype_companion/glossary_data.js"></script>
 
-<!-- Header -->
 <div class="header">
-    <div class="header-left">
-        <h1>openEHR RM Glossary Explorer</h1>
-        <div class="header-meta">
-            <span class="badge" id="rmVersion"></span>
-            <span class="badge" id="classCount"></span>
-            <span id="extractDate" style="font-size:11px;color:var(--text-muted)"></span>
-        </div>
-    </div>
-    <div class="header-controls">
-        <button class="toggle-btn" id="fnToggle" onclick="toggleFunctions()">ƒ Functions</button>
-        <button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">☀️ Light</button>
-        <button class="toggle-btn" onclick="document.getElementById('aboutModal').classList.add('show')">ℹ About</button>
-    </div>
+  <h1>🏥 openEHR RM Glossary</h1>
+  <span class="rm-version" id="rmVersion"></span>
+  <span class="extraction-date" id="extractionDate"></span>
+  <div class="header-spacer"></div>
+  <button class="header-btn" id="toggleFunctions">ƒ Functions</button>
+  <button class="header-btn" id="toggleTheme">☀️</button>
+  <button class="header-btn" id="aboutBtn">About</button>
 </div>
 
-<!-- Main -->
 <div class="main">
-    <!-- Left panel -->
-    <div class="left-panel">
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search classes, attributes, types… (Ctrl+K)" />
-        </div>
-        <div class="filter-bar" id="filterBar">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="class">Class</button>
-            <button class="filter-btn" data-filter="abstract">Abstract</button>
-            <button class="filter-btn" data-filter="interface">Interface</button>
-            <button class="filter-btn" data-filter="enum">Enum</button>
-        </div>
-        <div class="stats-bar" id="statsBar"></div>
-        <div class="class-list" id="classList"></div>
+  <!-- Left Panel -->
+  <div class="left-panel">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search… (Ctrl+K)">
     </div>
+    <div class="search-fields" id="searchFields">
+      <button class="search-field-btn active" data-field="className">Class</button>
+      <button class="search-field-btn active" data-field="classDesc">Description</button>
+      <button class="search-field-btn active" data-field="attrName">Attr Name</button>
+      <button class="search-field-btn active" data-field="attrDesc">Attr Desc</button>
+      <button class="search-field-btn active" data-field="attrType">Type</button>
+      <button class="search-field-btn active" data-field="funcName">Func Name</button>
+    </div>
+    <div class="type-filters" id="typeFilters">
+      <button class="type-filter-btn active" data-type="all">All</button>
+      <button class="type-filter-btn" data-type="Class">Class</button>
+      <button class="type-filter-btn" data-type="Abstract">Abstract</button>
+      <button class="type-filter-btn" data-type="Interface">Interface</button>
+      <button class="type-filter-btn" data-type="Enumeration">Enum</button>
+    </div>
+    <div class="stats-bar" id="statsBar"></div>
+    <div class="class-list" id="classList"></div>
+  </div>
 
-    <!-- Center panel -->
-    <div class="center-panel" id="centerPanel">
-        <div class="empty-state">
-            <div class="icon">📖</div>
-            <div>Select a class from the list to explore</div>
-            <div style="font-size:12px">Use search or arrow keys to navigate</div>
-        </div>
+  <!-- Center Panel -->
+  <div class="center-panel">
+    <div class="center-toolbar">
+      <button class="nav-btn" id="backBtn" disabled>◀<span class="tooltip" id="backTooltip"></span></button>
+      <button class="nav-btn" id="fwdBtn" disabled>▶<span class="tooltip" id="fwdTooltip"></span></button>
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <button class="header-btn" id="expandAllBtn" style="font-size:11px">Expand All</button>
+      <button class="header-btn" id="collapseAllBtn" style="font-size:11px">Collapse All</button>
     </div>
+    <div class="center-content" id="centerContent">
+      <div class="empty-state">Select a class from the list to explore its structure</div>
+    </div>
+  </div>
 
-    <!-- Right panel -->
-    <div class="right-panel" id="rightPanel">
-        <div class="detail-placeholder">Click an attribute or function to see details</div>
+  <!-- Right Panel -->
+  <div class="right-panel">
+    <div class="right-header">Detail Inspector</div>
+    <div class="right-content" id="rightContent">
+      <div class="empty-state">Click an attribute or function to see details</div>
     </div>
+  </div>
 </div>
 
-<!-- About modal -->
-<div class="modal-overlay" id="aboutModal" onclick="if(event.target===this)this.classList.remove('show')">
-    <div class="modal">
-        <h2>About</h2>
-        <p><strong>openEHR Reference Model Glossary Explorer</strong></p>
-        <p>An interactive browser for the openEHR Reference Model class hierarchy, attributes, functions, and inheritance chains.</p>
-        <p>Data extracted from the official openEHR specifications at <a href="https://specifications.openehr.org" target="_blank" style="color:var(--accent)">specifications.openehr.org</a>.</p>
-        <p style="margin-top:12px"><strong>Author:</strong> Martin Andreas Koch, PhD<br>
-        Tècnic de Modelatge de Coneixement Clínic<br>
-        Servei Català de la Salut (CatSalut)</p>
-        <p style="margin-top:12px"><strong>License:</strong> Creative Commons Attribution 4.0 International (CC BY 4.0)<br>
-        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" style="color:var(--accent)">https://creativecommons.org/licenses/by/4.0/</a></p>
-        <p style="margin-top:8px"><strong>Copyright:</strong> © 2026 Martin Andreas Koch / CatSalut. The underlying openEHR specifications are © openEHR Foundation and used under their published terms.</p>
-        <button class="close-btn" onclick="document.getElementById('aboutModal').classList.remove('show')">Close</button>
-    </div>
+<!-- About Modal -->
+<div class="modal-overlay" id="aboutModal">
+  <div class="modal">
+    <h3>openEHR RM Glossary Explorer</h3>
+    <p>An interactive browser for the <a href="https://specifications.openehr.org/releases/RM/latest" target="_blank">openEHR Reference Model</a> class hierarchy.</p>
+    <p><strong>Author:</strong> Martin Andreas Koch, PhD<br>
+    Servei Català de la Salut (CatSalut)</p>
+    <p><strong>License:</strong> <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a><br>
+    You are free to use, reproduce, modify, and distribute this work for any purpose, including commercially, as long as you include a copy of the license and state any changes made.</p>
+    <p><strong>Acknowledgements:</strong> <a href="https://www.openehr.org/" target="_blank">openEHR Foundation</a> for the Reference Model specifications.</p>
+    <button class="close-btn" onclick="document.getElementById('aboutModal').classList.remove('show')">Close</button>
+  </div>
 </div>
 
 <script>
-// ── State ──
-let currentClass = null;
-let selectedDetail = null;
-let history = [];
-let historyIndex = -1;
-let showFunctions = true;
-let activeFilter = 'all';
-let searchQuery = '';
-let allClassNames = [];
-let expandedInline = {}; // key: "className.attrName" -> true
+(function(){
+  // --- Data ---
+  const data = typeof glossary_data !== 'undefined' ? glossary_data : {};
+  const classNames = Object.keys(data).sort((a,b) => a.localeCompare(b, undefined, {sensitivity:'base'}));
+  const extractDate = typeof glossary_extraction_date !== 'undefined' ? glossary_extraction_date : '';
+  const extractSources = typeof glossary_extraction_source !== 'undefined' ? glossary_extraction_source : [];
 
-// ── Init ──
-function init() {
-    // Check data loaded
-    if (typeof glossary_data === 'undefined') {
-        document.getElementById('centerPanel').innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><div>glossary_data.js not found. Place it in the same folder as this HTML file.</div></div>';
-        return;
+  // RM version
+  let rmVersion = '';
+  for (const src of extractSources) {
+    const m = src.match(/releases\/(?:RM|BASE)\/([\w.]+)\//);
+    if (m && m[1] !== 'latest') { rmVersion = m[1]; break; }
+  }
+  if (!rmVersion) {
+    for (const src of extractSources) {
+      if (src.includes('/RM/')) { rmVersion = 'latest'; break; }
     }
+  }
+  document.getElementById('rmVersion').textContent = rmVersion ? 'RM ' + rmVersion : '';
+  document.getElementById('extractionDate').textContent = extractDate ? 'Extracted: ' + extractDate : '';
 
-    allClassNames = Object.keys(glossary_data).sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
+  // --- State ---
+  let currentClass = null;
+  let selectedAttr = null;
+  let history = [];
+  let historyIdx = -1;
+  let showFunctions = true;
+  let searchTerm = '';
+  let activeSearchFields = {className:true, classDesc:true, attrName:true, attrDesc:true, attrType:true, funcName:true};
+  let activeTypeFilter = 'all';
+  let listHighlightIdx = -1;
+  let expandedInline = {}; // key: "className|attrName|depth" -> true
 
-    // RM version
-    if (typeof glossary_extraction_source !== 'undefined' && glossary_extraction_source.length > 0) {
-        const m = glossary_extraction_source[0].match(/releases\/(RM|BASE)\/([\w.]+)\//);
-        document.getElementById('rmVersion').textContent = m ? 'RM ' + m[2] : 'RM';
+  // --- Theme ---
+  const savedTheme = localStorage.getItem('openehr-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  const themeBtn = document.getElementById('toggleTheme');
+  themeBtn.textContent = savedTheme === 'light' ? '🌙' : '☀️';
+  themeBtn.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('openehr-theme', next);
+    themeBtn.textContent = next === 'light' ? '🌙' : '☀️';
+  });
+
+  // --- Functions toggle ---
+  const funcBtn = document.getElementById('toggleFunctions');
+  funcBtn.classList.toggle('active', showFunctions);
+  funcBtn.addEventListener('click', () => {
+    showFunctions = !showFunctions;
+    funcBtn.classList.toggle('active', showFunctions);
+    if (currentClass) renderCenter(currentClass);
+  });
+
+  // --- About ---
+  document.getElementById('aboutBtn').addEventListener('click', () => {
+    document.getElementById('aboutModal').classList.add('show');
+  });
+  document.getElementById('aboutModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('aboutModal')) document.getElementById('aboutModal').classList.remove('show');
+  });
+
+  // --- Search field toggles ---
+  document.getElementById('searchFields').addEventListener('click', (e) => {
+    const btn = e.target.closest('.search-field-btn');
+    if (!btn) return;
+    const field = btn.dataset.field;
+    activeSearchFields[field] = !activeSearchFields[field];
+    btn.classList.toggle('active', activeSearchFields[field]);
+    renderList();
+  });
+
+  // --- Type filters ---
+  document.getElementById('typeFilters').addEventListener('click', (e) => {
+    const btn = e.target.closest('.type-filter-btn');
+    if (!btn) return;
+    activeTypeFilter = btn.dataset.type;
+    document.querySelectorAll('.type-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.type === activeTypeFilter));
+    renderList();
+  });
+
+  // --- Search ---
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', () => {
+    searchTerm = searchInput.value.trim();
+    listHighlightIdx = -1;
+    renderList();
+    if (currentClass) renderCenter(currentClass);
+  });
+
+  // --- Helpers ---
+  function getClassType(name) {
+    const c = data[name];
+    if (!c) return 'Class';
+    if (c.type === 'Enumeration') return 'Enumeration';
+    if (c.type === 'Interface') return 'Interface';
+    if (c.abstract === 'true' || c.abstract === true) return 'Abstract';
+    return 'Class';
+  }
+  function getTagClass(type) {
+    if (type === 'Abstract') return 'tag-abstract';
+    if (type === 'Interface') return 'tag-interface';
+    if (type === 'Enumeration') return 'tag-enum';
+    return 'tag-class';
+  }
+  function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function highlightText(text, term) {
+    return text
+    /*
+    if (!term) return escapeHtml(text);
+    const escaped = escapeHtml(text);
+    const termEsc = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('(' + termEsc.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + ')', 'gi');
+    return escaped.replace(re, '<span class="search-hl">$1</span>');
+    */
+  }
+  function matchesSearch(className) {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    const c = data[className];
+    if (activeSearchFields.className && className.toLowerCase().includes(term)) return true;
+    if (activeSearchFields.classDesc && c.description && c.description.toLowerCase().includes(term)) return true;
+    if (c.attributes) {
+      for (const [aName, aVal] of Object.entries(c.attributes)) {
+        if (activeSearchFields.attrName && aName.toLowerCase().includes(term)) return true;
+        if (activeSearchFields.attrDesc && aVal.description && aVal.description.toLowerCase().includes(term)) return true;
+        if (activeSearchFields.attrType && aVal.type && aVal.type.join(' ').toLowerCase().includes(term)) return true;
+      }
     }
-
-    // Extraction date
-    if (typeof glossary_extraction_date !== 'undefined') {
-        document.getElementById('extractDate').textContent = 'Extracted: ' + glossary_extraction_date;
-    }
-
-    // Class count
-    document.getElementById('classCount').textContent = allClassNames.length + ' classes';
-
-    // Theme
-    const saved = localStorage.getItem('oehr-theme');
-    if (saved === 'light') { document.documentElement.setAttribute('data-theme', 'light'); document.getElementById('themeToggle').innerHTML = '🌙 Dark'; }
-
-    // Functions toggle
-    const fnSaved = localStorage.getItem('oehr-fn');
-    if (fnSaved === 'hidden') { showFunctions = false; document.getElementById('fnToggle').classList.remove('active'); }
-    else { document.getElementById('fnToggle').classList.add('active'); }
-
-    // Filters
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            activeFilter = btn.dataset.filter;
-            renderClassList();
-        });
-    });
-
-    // Search
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        searchQuery = e.target.value.toLowerCase();
-        renderClassList();
-    });
-
-    // Keyboard
-    document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('searchInput').focus(); }
-        if (e.key === '/' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); document.getElementById('searchInput').focus(); }
-        if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); goBack(); }
-        if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); goForward(); }
-        if (document.activeElement.tagName !== 'INPUT') {
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                e.preventDefault();
-                navigateList(e.key === 'ArrowDown' ? 1 : -1);
-            }
-            if (e.key === 'Enter') {
-                const active = document.querySelector('.class-item.active');
-                if (active) selectClass(active.dataset.name, true);
-            }
-        }
-    });
-
-    renderClassList();
-}
-
-// ── Helpers ──
-function getClassType(name) {
-    const d = glossary_data[name];
-    if (!d) return 'class';
-    if (d.type === 'Interface') return 'interface';
-    if (d.type === 'Enumeration') return 'enum';
-    if (d.abstract === 'true') return 'abstract';
-    return 'class';
-}
-
-function matchesSearch(name) {
-    if (!searchQuery) return true;
-    const d = glossary_data[name];
-    const q = searchQuery;
-    if (name.toLowerCase().includes(q)) return true;
-    if (d.description && d.description.toLowerCase().includes(q)) return true;
-    if (d.attributes) {
-        for (const [an, av] of Object.entries(d.attributes)) {
-            if (an.toLowerCase().includes(q)) return true;
-            if (av.description && av.description.toLowerCase().includes(q)) return true;
-            if (av.type && av.type.join(' ').toLowerCase().includes(q)) return true;
-        }
-    }
-    if (d.functions) {
-        for (const [fn, fv] of Object.entries(d.functions)) {
-            if (fn.toLowerCase().includes(q)) return true;
-            if (fv.description && fv.description.toLowerCase().includes(q)) return true;
-            if (fv.return_type && fv.return_type.join(' ').toLowerCase().includes(q)) return true;
-        }
+    if (c.functions) {
+      for (const fName of Object.keys(c.functions)) {
+        if (activeSearchFields.funcName && fName.toLowerCase().includes(term)) return true;
+      }
     }
     return false;
-}
-
-function matchesFilter(name) {
-    if (activeFilter === 'all') return true;
-    return getClassType(name) === activeFilter;
-}
-
-function getInheritanceChain(name) {
+  }
+  function getInheritanceChain(className) {
     const chain = [];
-    let current = name;
+    let cur = className;
     const visited = new Set();
-    while (current && glossary_data[current] && !visited.has(current)) {
-        visited.add(current);
-        chain.unshift(current);
-        const inh = glossary_data[current].inherit;
-        if (inh) {
-            // Handle multiple inheritance like "DV_TEMPORAL, Iso8601_date"
-            current = inh.split(',')[0].trim();
-        } else {
-            current = null;
-        }
+    while (cur && data[cur] && !visited.has(cur)) {
+      visited.add(cur);
+      chain.unshift(cur);
+      const inh = data[cur].inherit;
+      if (!inh) break;
+      cur = inh.split(',')[0].trim();
     }
     return chain;
-}
-
-function getAllInheritedAttrs(name) {
+  }
+  function getAllInherited(className, kind) {
+    // kind: 'attributes' or 'functions'
     const result = [];
-    const visited = new Set();
-    function walk(cls) {
-        if (!cls || visited.has(cls) || !glossary_data[cls]) return;
-        visited.add(cls);
-        const d = glossary_data[cls];
-        if (d.inherit) {
-            d.inherit.split(',').map(s => s.trim()).forEach(parent => {
-                if (glossary_data[parent]) {
-                    const pd = glossary_data[parent];
-                    if (pd.attributes) {
-                        for (const [an, av] of Object.entries(pd.attributes)) {
-                            result.push({ name: an, data: av, from: parent });
-                        }
-                    }
-                    walk(parent);
-                }
-            });
+    const ownKeys = new Set(Object.keys((data[className] && data[className][kind]) || {}));
+    const visited = new Set([className]);
+    function walk(cn) {
+      if (!data[cn]) return;
+      const inh = data[cn].inherit;
+      if (!inh) return;
+      const parents = inh.split(',').map(s => s.trim());
+      for (const p of parents) {
+        if (visited.has(p) || !data[p]) continue;
+        visited.add(p);
+        const items = data[p][kind];
+        if (items) {
+          for (const [name, val] of Object.entries(items)) {
+            if (!ownKeys.has(name)) {
+              result.push({name, val, from: p});
+              ownKeys.add(name);
+            }
+          }
         }
+        walk(p);
+      }
     }
-    walk(name);
+    walk(className);
     return result;
-}
+  }
 
-function getAllInheritedFns(name) {
-    const result = [];
-    const visited = new Set();
-    function walk(cls) {
-        if (!cls || visited.has(cls) || !glossary_data[cls]) return;
-        visited.add(cls);
-        const d = glossary_data[cls];
-        if (d.inherit) {
-            d.inherit.split(',').map(s => s.trim()).forEach(parent => {
-                if (glossary_data[parent]) {
-                    const pd = glossary_data[parent];
-                    if (pd.functions) {
-                        for (const [fn, fv] of Object.entries(pd.functions)) {
-                            result.push({ name: fn, data: fv, from: parent });
-                        }
-                    }
-                    walk(parent);
-                }
-            });
-        }
-    }
-    walk(name);
-    return result;
-}
-
-function typeLink(types) {
-    if (!types || types.length === 0) return '';
-    return types.map(t => {
-        const clean = t.trim();
-        if (glossary_data[clean]) {
-            return '<a onclick="selectClass(\'' + clean.replace(/'/g, "\\'") + '\', true)">' + escHtml(clean) + '</a>';
-        }
-        return escHtml(clean);
-    }).join('&lt;');
-}
-
-function escHtml(s) {
-    if (!s) return '';
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── Render class list ──
-function renderClassList() {
-    const list = document.getElementById('classList');
-    const filtered = allClassNames.filter(n => matchesFilter(n) && matchesSearch(n));
-    document.getElementById('statsBar').textContent = filtered.length + ' of ' + allClassNames.length + ' classes';
-
-    list.innerHTML = filtered.map(name => {
-        const t = getClassType(name);
-        const isActive = name === currentClass ? ' active' : '';
-        return '<div class="class-item' + isActive + '" data-name="' + escHtml(name) + '" onclick="selectClass(\'' + name.replace(/'/g, "\\'") + '\', true)">' +
-            '<span class="type-dot ' + t + '"></span>' +
-            '<span>' + escHtml(name) + '</span></div>';
-    }).join('');
-}
-
-// ── Navigate list with arrows ──
-function navigateList(dir) {
-    const items = document.querySelectorAll('.class-item');
-    if (items.length === 0) return;
-    let idx = -1;
-    items.forEach((el, i) => { if (el.classList.contains('active')) idx = i; });
-    idx += dir;
-    if (idx < 0) idx = 0;
-    if (idx >= items.length) idx = items.length - 1;
-    const name = items[idx].dataset.name;
-    selectClass(name, true);
-    items[idx].scrollIntoView({ block: 'nearest' });
-}
-
-// ── History ──
-function pushHistory(name) {
-    if (historyIndex >= 0 && history[historyIndex] === name) return;
-    history = history.slice(0, historyIndex + 1);
-    history.push(name);
-    historyIndex = history.length - 1;
-}
-
-function goBack() {
-    if (historyIndex > 0) {
-        historyIndex--;
-        selectClass(history[historyIndex], false);
-    }
-}
-
-function goForward() {
-    if (historyIndex < history.length - 1) {
-        historyIndex++;
-        selectClass(history[historyIndex], false);
-    }
-}
-
-// ── Select class ──
-function selectClass(name, addToHistory) {
-    if (!glossary_data[name]) return;
-    currentClass = name;
-    selectedDetail = null;
-    expandedInline = {};
-    if (addToHistory) pushHistory(name);
-    renderClassList();
-    renderCenter();
-    renderDetail(null);
-}
-
-// ── Render center ──
-function renderCenter() {
-    const panel = document.getElementById('centerPanel');
-    if (!currentClass) return;
-    const d = glossary_data[currentClass];
-    const t = getClassType(currentClass);
-    const chain = getInheritanceChain(currentClass);
-    const ownAttrs = d.attributes ? Object.entries(d.attributes) : [];
-    const inhAttrs = getAllInheritedAttrs(currentClass);
-    const ownFns = d.functions ? Object.entries(d.functions) : [];
-    const inhFns = getAllInheritedFns(currentClass);
-    const totalAttrs = ownAttrs.length + inhAttrs.length;
-    const totalFns = ownFns.length + inhFns.length;
+  // --- Render class list ---
+  function renderList() {
+    const container = document.getElementById('classList');
+    let filtered = classNames.filter(cn => {
+      const type = getClassType(cn);
+      if (activeTypeFilter !== 'all') {
+        if (activeTypeFilter === 'Abstract' && type !== 'Abstract') return false;
+        if (activeTypeFilter === 'Class' && type !== 'Class') return false;
+        if (activeTypeFilter === 'Interface' && type !== 'Interface') return false;
+        if (activeTypeFilter === 'Enumeration' && type !== 'Enumeration') return false;
+      }
+      return matchesSearch(cn);
+    });
+    // Stats
+    const totalClasses = classNames.length;
+    const abstractCount = classNames.filter(cn => getClassType(cn) === 'Abstract').length;
+    const interfaceCount = classNames.filter(cn => getClassType(cn) === 'Interface').length;
+    document.getElementById('statsBar').textContent = `${filtered.length} / ${totalClasses} classes · ${abstractCount} abstract · ${interfaceCount} interfaces`;
 
     let html = '';
-
-    // Nav bar
-    const backLabel = historyIndex > 0 ? history[historyIndex - 1] : '';
-    const fwdLabel = historyIndex < history.length - 1 ? history[historyIndex + 1] : '';
-    html += '<div class="nav-bar">';
-    html += '<button class="nav-btn" onclick="goBack()" ' + (historyIndex <= 0 ? 'disabled' : '') + '>◀' +
-        (backLabel ? '<span class="tooltip">← ' + escHtml(backLabel) + '</span>' : '') + '</button>';
-    html += '<button class="nav-btn" onclick="goForward()" ' + (historyIndex >= history.length - 1 ? 'disabled' : '') + '>▶' +
-        (fwdLabel ? '<span class="tooltip">' + escHtml(fwdLabel) + ' →</span>' : '') + '</button>';
-    // Breadcrumb
-    html += '<div class="breadcrumb">';
-    chain.forEach((c, i) => {
-        if (i > 0) html += ' <span style="color:var(--text-muted)">›</span> ';
-        if (c === currentClass) html += '<strong style="color:var(--text-primary)">' + escHtml(c) + '</strong>';
-        else html += '<a onclick="selectClass(\'' + c.replace(/'/g, "\\'") + '\', true)">' + escHtml(c) + '</a>';
+    filtered.forEach((cn, idx) => {
+      const type = getClassType(cn);
+      const isActive = cn === currentClass;
+      const isHighlighted = idx === listHighlightIdx;
+      html += `<div class="class-item${isActive ? ' active' : ''}${isHighlighted ? ' highlighted' : ''}" data-class="${escapeHtml(cn)}" data-idx="${idx}">
+        <span class="class-name">${highlightText(cn, searchTerm)}</span>
+        <span class="class-tag ${getTagClass(type)}">${type === 'Enumeration' ? 'Enum' : type}</span>
+      </div>`;
     });
-    html += '</div></div>';
+    container.innerHTML = html;
+    container._filtered = filtered;
+  }
 
-    // Class header
-    html += '<div class="class-header">';
-    html += '<div class="class-title-row"><span class="class-title">' + escHtml(currentClass) + '</span>';
-    html += '<span class="type-badge ' + t + '">' + escHtml(t) + '</span></div>';
-    if (d.description) html += '<div class="class-desc">' + escHtml(d.description) + '</div>';
-    html += '<div class="class-links">';
-    if (d.url) html += '<a href="' + escHtml(d.url) + '" target="_blank">📄 Specification</a>';
-    if (d.inherit) html += '<span style="color:var(--text-muted)">Inherits:</span> ' + d.inherit.split(',').map(p => {
-        const pt = p.trim();
-        return glossary_data[pt] ? '<a onclick="selectClass(\'' + pt.replace(/'/g, "\\'") + '\', true)">' + escHtml(pt) + '</a>' : escHtml(pt);
-    }).join(', ');
-    if (d.specialization && d.specialization.length > 0) {
-        html += ' <span style="color:var(--text-muted);margin-left:8px">Children:</span> ' + d.specialization.map(s => {
-            return glossary_data[s] ? '<a onclick="selectClass(\'' + s.replace(/'/g, "\\'") + '\', true)">' + escHtml(s) + '</a>' : escHtml(s);
-        }).join(', ');
+  // --- Navigate to class ---
+  function navigateTo(className, addToHistory) {
+    if (!data[className]) return;
+    if (addToHistory !== false) {
+      if (historyIdx < history.length - 1) history = history.slice(0, historyIdx + 1);
+      history.push(className);
+      historyIdx = history.length - 1;
     }
-    html += '</div></div>';
+    currentClass = className;
+    selectedAttr = null;
+    expandedInline = {};
+    renderList();
+    renderCenter(className);
+    renderRight(null);
+    updateNavButtons();
+    // Scroll active item into view
+    const activeEl = document.querySelector('.class-item.active');
+    if (activeEl) activeEl.scrollIntoView({block:'nearest'});
+  }
 
-    // Attributes section
+  // --- Nav buttons ---
+  function updateNavButtons() {
+    const backBtn = document.getElementById('backBtn');
+    const fwdBtn = document.getElementById('fwdBtn');
+    backBtn.disabled = historyIdx <= 0;
+    fwdBtn.disabled = historyIdx >= history.length - 1;
+    document.getElementById('backTooltip').textContent = historyIdx > 0 ? '← ' + history[historyIdx - 1] : '';
+    document.getElementById('fwdTooltip').textContent = historyIdx < history.length - 1 ? history[historyIdx + 1] + ' →' : '';
+  }
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (historyIdx > 0) { historyIdx--; navigateTo(history[historyIdx], false); }
+  });
+  document.getElementById('fwdBtn').addEventListener('click', () => {
+    if (historyIdx < history.length - 1) { historyIdx++; navigateTo(history[historyIdx], false); }
+  });
+
+  // --- Render center ---
+  function renderCenter(className) {
+    const c = data[className];
+    if (!c) return;
+    const chain = getInheritanceChain(className);
+    const type = getClassType(className);
+    const container = document.getElementById('centerContent');
+
+    // Breadcrumb
+    const bc = document.getElementById('breadcrumb');
+    bc.innerHTML = chain.map((cn, i) => {
+      if (i < chain.length - 1) return `<a onclick="window._nav('${cn}')">${escapeHtml(cn)}</a><span class="sep">›</span>`;
+      return `<span style="color:var(--text-primary);font-weight:600">${escapeHtml(cn)}</span>`;
+    }).join('');
+
+    let html = '<div class="class-header">';
+    html += `<h2>${highlightText(className, searchTerm)} <span class="class-tag ${getTagClass(type)}">${type === 'Enumeration' ? 'Enum' : type}</span></h2>`;
+    if (c.description) html += `<div class="desc">${highlightText(c.description, searchTerm)}</div>`;
+    if (c.url) html += `<a class="spec-link" href="${escapeHtml(c.url)}" target="_blank">📖 View in openEHR Specification</a>`;
+    if (c.specialization && c.specialization.length) {
+      html += `<div class="specializations">Specializations: ${c.specialization.map(s => data[s] ? `<a onclick="window._nav('${s}')">${escapeHtml(s)}</a>` : escapeHtml(s)).join(', ')}</div>`;
+    }
+    html += '</div>';
+
+    // Own attributes
+    const ownAttrs = c.attributes ? Object.entries(c.attributes) : [];
+    const inhAttrs = getAllInherited(className, 'attributes');
+    const totalAttrs = ownAttrs.length + inhAttrs.length;
+
     if (totalAttrs > 0) {
-        html += '<div class="section" id="attrSection">';
-        html += '<div class="section-header" onclick="toggleSection(\'attrBody\', this)">';
-        html += '<span class="arrow open">▶</span><h3>Attributes</h3><span class="count">' + totalAttrs + '</span></div>';
-        html += '<div class="section-body" id="attrBody">';
-        ownAttrs.forEach(([name, data]) => {
-            html += renderAttrRow(name, data, null, currentClass);
-        });
-        inhAttrs.forEach(item => {
-            html += renderAttrRow(item.name, item.data, item.from, currentClass);
-        });
+      html += `<div class="tree-section" data-section="attrs">`;
+      html += `<div class="tree-section-header" onclick="window._toggleSection(this)">
+        <span class="arrow open">▶</span>
+        <span class="title">Attributes</span>
+        <span class="count">(${totalAttrs})</span>
+      </div>`;
+      html += `<div class="tree-section-body">`;
+      for (const [aName, aVal] of ownAttrs) {
+        html += renderAttrRow(aName, aVal, null, className, 0);
+      }
+      for (const item of inhAttrs) {
+        html += renderAttrRow(item.name, item.val, item.from, className, 0);
+      }
+      html += '</div></div>';
+    }
+
+    // Own functions + inherited functions
+    if (showFunctions) {
+      const ownFuncs = c.functions ? Object.entries(c.functions) : [];
+      const inhFuncs = getAllInherited(className, 'functions');
+      const totalFuncs = ownFuncs.length + inhFuncs.length;
+      if (totalFuncs > 0) {
+        html += `<div class="tree-section" data-section="funcs">`;
+        html += `<div class="tree-section-header" onclick="window._toggleSection(this)">
+          <span class="arrow open">▶</span>
+          <span class="title">Functions</span>
+          <span class="count">(${totalFuncs})</span>
+        </div>`;
+        html += `<div class="tree-section-body">`;
+        for (const [fName, fVal] of ownFuncs) {
+          html += renderFuncRow(fName, fVal, null);
+        }
+        for (const item of inhFuncs) {
+          html += renderFuncRow(item.name, item.val, item.from);
+        }
         html += '</div></div>';
+      }
     }
 
-    // Functions section
-    if (totalFns > 0) {
-        html += '<div class="section" id="fnSection"' + (!showFunctions ? ' style="display:none"' : '') + '>';
-        html += '<div class="section-header" onclick="toggleSection(\'fnBody\', this)">';
-        html += '<span class="arrow open">▶</span><h3>Functions</h3><span class="count">' + totalFns + '</span></div>';
-        html += '<div class="section-body" id="fnBody">';
-        ownFns.forEach(([name, data]) => {
-            html += renderFnRow(name, data, null);
-        });
-        inhFns.forEach(item => {
-            html += renderFnRow(item.name, item.data, item.from);
-        });
-        html += '</div></div>';
-    }
+    container.innerHTML = html;
+  }
 
-    if (totalAttrs === 0 && totalFns === 0 && !d.description) {
-        html += '<div style="color:var(--text-muted);font-style:italic;margin-top:20px">This class has no own attributes or functions.</div>';
-    }
+  function renderAttrRow(aName, aVal, fromClass, contextClass, depth) {
+    const existence = aVal.existence || '';
+    const isMandatory = existence.startsWith('1');
+    const types = aVal.type || [];
+    const primaryType = types.length > 0 ? types[types.length > 1 ? 1 : 0] : '';
+    const containerType = types.length > 1 ? types[0] : '';
+    const canExpand = primaryType && data[primaryType] && data[primaryType].attributes;
+    const inlineKey = contextClass + '|' + aName + '|' + depth;
+    const isExpanded = expandedInline[inlineKey];
 
-    panel.innerHTML = html;
-}
-
-function renderAttrRow(name, data, fromClass, ownerClass) {
-    const isMandatory = data.existence && data.existence.startsWith('1');
-    const existClass = isMandatory ? 'mandatory' : 'optional';
-    const inherited = fromClass ? ' inherited' : '';
-    const typeStr = data.type ? typeLink(data.type) : '';
-    const expandable = data.type && data.type.length > 0 && glossary_data[data.type[0]] && glossary_data[data.type[0]].attributes;
-    const inlineKey = ownerClass + '.' + name + (fromClass ? '.' + fromClass : '');
-
-    let html = '<div class="attr-row' + inherited + '" data-attr="' + escHtml(name) + '" data-from="' + escHtml(fromClass || '') + '" onclick="showAttrDetail(\'' + escHtml(name).replace(/'/g, "\\'") + '\', ' + JSON.stringify(data).replace(/"/g, '&quot;').replace(/'/g, "\\'") + ', \'' + escHtml(fromClass || '') + '\')">';
-
-    if (expandable) {
-        const isOpen = expandedInline[inlineKey];
-        html += '<span class="attr-expand-btn' + (isOpen ? ' open' : '') + '" onclick="event.stopPropagation(); toggleInlineExpand(\'' + inlineKey.replace(/'/g, "\\'") + '\', \'' + data.type[0].replace(/'/g, "\\'") + '\', this)">▶</span>';
+    let html = `<div class="attr-row${fromClass ? ' inherited' : ''}" data-attr="${escapeHtml(aName)}" data-kind="attr" data-from="${fromClass || ''}" onclick="window._selectAttr(this)">`;
+    if (canExpand) {
+      html += `<span class="attr-expand-btn${isExpanded ? ' open' : ''}" onclick="event.stopPropagation(); window._toggleInline('${escapeHtml(inlineKey)}', '${escapeHtml(primaryType)}', this)">▶</span>`;
     } else {
-        html += '<span class="attr-expand-placeholder"></span>';
+      html += `<span class="attr-expand-btn placeholder">▶</span>`;
     }
-
-    html += '<span class="attr-name">' + escHtml(name) + '</span>';
-    if (data.existence) html += '<span class="attr-existence ' + existClass + '">' + escHtml(data.existence) + '</span>';
-    if (typeStr) html += '<span class="attr-type">' + typeStr + '</span>';
-    if (fromClass) html += '<span class="attr-from">from <a onclick="event.stopPropagation(); selectClass(\'' + fromClass.replace(/'/g, "\\'") + '\', true)">' + escHtml(fromClass) + '</a></span>';
+    html += `<span class="attr-name">${highlightText(aName, searchTerm)}</span>`;
+    html += `<span class="attr-existence ${isMandatory ? 'mandatory' : 'optional'}">${existence}</span>`;
+    let typeHtml = '';
+    if (containerType) typeHtml += escapeHtml(containerType) + '&lt;';
+    if (data[primaryType]) {
+      typeHtml += `<a onclick="event.stopPropagation(); window._nav('${primaryType}')">${highlightText(primaryType, searchTerm)}</a>`;
+    } else {
+      typeHtml += highlightText(primaryType, searchTerm);
+    }
+    if (containerType) typeHtml += '&gt;';
+    html += `<span class="attr-type">${typeHtml}</span>`;
+    if (fromClass) {
+      html += `<span class="attr-from">from <a onclick="event.stopPropagation(); window._nav('${fromClass}')">${escapeHtml(fromClass)}</a></span>`;
+    }
     html += '</div>';
 
     // Inline expanded children
-    if (expandedInline[inlineKey] && expandable) {
-        html += '<div class="inline-tree" id="inline-' + inlineKey.replace(/[^a-zA-Z0-9]/g, '_') + '">';
-        const childClass = data.type[0];
-        const cd = glossary_data[childClass];
-        if (cd.attributes) {
-            Object.entries(cd.attributes).forEach(([cn, cv]) => {
-                html += renderAttrRow(cn, cv, childClass, childClass);
-            });
-        }
-        // Also show inherited attrs of the child
-        const childInherited = getAllInheritedAttrs(childClass);
-        childInherited.forEach(item => {
-            html += renderAttrRow(item.name, item.data, item.from, childClass);
-        });
-        html += '</div>';
+    if (isExpanded && canExpand) {
+      html += `<div class="inline-children">`;
+      html += `<div class="inline-class-label">${escapeHtml(primaryType)} attributes:</div>`;
+      const childClass = data[primaryType];
+      const childAttrs = childClass.attributes ? Object.entries(childClass.attributes) : [];
+      const childInhAttrs = getAllInherited(primaryType, 'attributes');
+      for (const [cName, cVal] of childAttrs) {
+        html += renderAttrRow(cName, cVal, null, contextClass + '>' + primaryType, depth + 1);
+      }
+      for (const item of childInhAttrs) {
+        html += renderAttrRow(item.name, item.val, item.from, contextClass + '>' + primaryType, depth + 1);
+      }
+      html += '</div>';
     }
 
     return html;
-}
+  }
 
-function renderFnRow(name, data, fromClass) {
-    const inherited = fromClass ? ' inherited' : '';
-    const retType = data.return_type ? typeLink(data.return_type) : '';
+  function renderFuncRow(fName, fVal, fromClass) {
+    const retType = fVal.return_type || [];
+    const primaryRet = retType.length > 0 ? retType[retType.length > 1 ? 1 : 0] : '';
+    const containerRet = retType.length > 1 ? retType[0] : '';
+    const existence = fVal.existence || '';
+    const isMandatory = existence.startsWith('1');
 
-    let html = '<div class="fn-row' + inherited + '" onclick="showFnDetail(\'' + escHtml(name).replace(/'/g, "\\'") + '\', ' + JSON.stringify(data).replace(/"/g, '&quot;').replace(/'/g, "\\'") + ', \'' + escHtml(fromClass || '') + '\')">';
-    html += '<span class="fn-name">ƒ ' + escHtml(name) + '</span>';
-    if (retType) html += '<span class="fn-return">→ ' + retType + '</span>';
-    if (fromClass) html += '<span class="fn-from">from <a onclick="event.stopPropagation(); selectClass(\'' + fromClass.replace(/'/g, "\\'") + '\', true)">' + escHtml(fromClass) + '</a></span>';
+    let html = `<div class="attr-row${fromClass ? ' inherited' : ''}" data-attr="${escapeHtml(fName)}" data-kind="func" data-from="${fromClass || ''}" onclick="window._selectAttr(this)">`;
+    html += `<span class="attr-expand-btn placeholder">▶</span>`;
+    html += `<span class="attr-name" style="font-style:italic">ƒ ${highlightText(fName, searchTerm)}</span>`;
+    html += `<span class="attr-existence ${isMandatory ? 'mandatory' : 'optional'}">${existence}</span>`;
+    let typeHtml = '→ ';
+    if (containerRet) typeHtml += escapeHtml(containerRet) + '&lt;';
+    if (data[primaryRet]) {
+      typeHtml += `<a onclick="event.stopPropagation(); window._nav('${primaryRet}')">${escapeHtml(primaryRet)}</a>`;
+    } else {
+      typeHtml += escapeHtml(primaryRet);
+    }
+    if (containerRet) typeHtml += '&gt;';
+    html += `<span class="attr-type">${typeHtml}</span>`;
+    if (fromClass) {
+      html += `<span class="attr-from">from <a onclick="event.stopPropagation(); window._nav('${fromClass}')">${escapeHtml(fromClass)}</a></span>`;
+    }
     html += '</div>';
     return html;
-}
+  }
 
-// ── Inline expand ──
-function toggleInlineExpand(key, typeName, btnEl) {
-    if (expandedInline[key]) {
-        delete expandedInline[key];
+  // --- Right panel ---
+  function renderRight(el) {
+    const rc = document.getElementById('rightContent');
+    if (!el) {
+      rc.innerHTML = '<div class="empty-state">Click an attribute or function to see details</div>';
+      return;
+    }
+    const kind = el.dataset.kind;
+    const name = el.dataset.attr;
+    const from = el.dataset.from;
+    const c = data[currentClass];
+    if (!c) return;
+
+    let item;
+    if (kind === 'attr') {
+      item = (c.attributes && c.attributes[name]) || null;
+      if (!item && from && data[from]) item = data[from].attributes && data[from].attributes[name];
+      // Also check inherited
+      if (!item) {
+        const inh = getAllInherited(currentClass, 'attributes');
+        const found = inh.find(i => i.name === name);
+        if (found) item = found.val;
+      }
     } else {
-        expandedInline[key] = true;
+      item = (c.functions && c.functions[name]) || null;
+      if (!item && from && data[from]) item = data[from].functions && data[from].functions[name];
+      if (!item) {
+        const inh = getAllInherited(currentClass, 'functions');
+        const found = inh.find(i => i.name === name);
+        if (found) item = found.val;
+      }
     }
-    renderCenter();
-}
+    if (!item) { rc.innerHTML = '<div class="empty-state">No details available</div>'; return; }
 
-// ── Section toggle ──
-function toggleSection(bodyId, headerEl) {
-    const body = document.getElementById(bodyId);
-    const arrow = headerEl.querySelector('.arrow');
-    if (body.style.display === 'none') {
-        body.style.display = '';
-        arrow.classList.add('open');
-    } else {
-        body.style.display = 'none';
-        arrow.classList.remove('open');
+    let html = '';
+    html += `<div class="detail-label">Name</div><div class="detail-value">${kind === 'func' ? 'ƒ ' : ''}${highlightText(name, searchTerm)}</div>`;
+    if (item.description) {
+      html += `<div class="detail-label">Description</div><div class="detail-value">${highlightText(item.description, searchTerm)}</div>`;
     }
-}
-
-// ── Detail panel ──
-function showAttrDetail(name, data, fromClass) {
-    // Highlight active
-    document.querySelectorAll('.attr-row, .fn-row').forEach(r => r.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-
-    const panel = document.getElementById('rightPanel');
-    let html = '<div class="detail-title">' + escHtml(name) + '</div>';
-
-    html += '<div class="detail-section"><div class="detail-label">Description</div>';
-    html += '<div class="detail-value">' + escHtml(data.description || 'No description') + '</div></div>';
-
-    if (data.existence) {
-        const isMandatory = data.existence.startsWith('1');
-        html += '<div class="detail-section"><div class="detail-label">Existence</div>';
-        html += '<div class="detail-value"><span class="attr-existence ' + (isMandatory ? 'mandatory' : 'optional') + '">' + escHtml(data.existence) + '</span> ' + (isMandatory ? 'Mandatory' : 'Optional') + '</div></div>';
+    html += `<div class="detail-label">Existence</div><div class="detail-value">${item.existence || '—'}</div>`;
+    if (kind === 'attr' && item.type) {
+      const types = item.type;
+      const primary = types.length > 1 ? types[1] : types[0];
+      const container = types.length > 1 ? types[0] : '';
+      let tHtml = container ? escapeHtml(container) + '&lt;' : '';
+      tHtml += data[primary] ? `<a onclick="window._nav('${primary}')">${escapeHtml(primary)}</a>` : escapeHtml(primary);
+      if (container) tHtml += '&gt;';
+      html += `<div class="detail-label">Data Type</div><div class="detail-value">${tHtml}</div>`;
     }
-
-    if (data.type) {
-        html += '<div class="detail-section"><div class="detail-label">Data Type</div>';
-        html += '<div class="detail-value">' + typeLink(data.type) + '</div></div>';
+    if (kind === 'func' && item.return_type) {
+      const types = item.return_type;
+      const primary = types.length > 1 ? types[1] : types[0];
+      const container = types.length > 1 ? types[0] : '';
+      let tHtml = container ? escapeHtml(container) + '&lt;' : '';
+      tHtml += data[primary] ? `<a onclick="window._nav('${primary}')">${escapeHtml(primary)}</a>` : escapeHtml(primary);
+      if (container) tHtml += '&gt;';
+      html += `<div class="detail-label">Return Type</div><div class="detail-value">${tHtml}</div>`;
     }
-
-    if (fromClass) {
-        html += '<div class="detail-section"><div class="detail-label">Inherited From</div>';
-        html += '<div class="detail-value"><a onclick="selectClass(\'' + fromClass.replace(/'/g, "\\'") + '\', true)">' + escHtml(fromClass) + '</a></div></div>';
+    if (kind === 'func' && item.prerequisite) {
+      html += `<div class="detail-label">Prerequisite</div><div class="detail-value">${escapeHtml(item.prerequisite)}</div>`;
     }
-
-    panel.innerHTML = html;
-}
-
-function showFnDetail(name, data, fromClass) {
-    document.querySelectorAll('.attr-row, .fn-row').forEach(r => r.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-
-    const panel = document.getElementById('rightPanel');
-    let html = '<div class="detail-title">ƒ ' + escHtml(name) + '</div>';
-
-    html += '<div class="detail-section"><div class="detail-label">Description</div>';
-    html += '<div class="detail-value">' + escHtml(data.description || 'No description') + '</div></div>';
-
-    if (data.return_type) {
-        html += '<div class="detail-section"><div class="detail-label">Return Type</div>';
-        html += '<div class="detail-value">' + typeLink(data.return_type) + '</div></div>';
+    if (from) {
+      html += `<div class="detail-label">Inherited From</div><div class="detail-value"><a onclick="window._nav('${from}')">${escapeHtml(from)}</a></div>`;
     }
+    rc.innerHTML = html;
+  }
 
-    if (data.existence) {
-        html += '<div class="detail-section"><div class="detail-label">Existence</div>';
-        html += '<div class="detail-value">' + escHtml(data.existence) + '</div></div>';
+  // --- Global handlers ---
+  window._nav = function(cn) { navigateTo(cn, true); };
+  window._toggleSection = function(header) {
+    const arrow = header.querySelector('.arrow');
+    const body = header.nextElementSibling;
+    arrow.classList.toggle('open');
+    body.classList.toggle('collapsed');
+  };
+  window._toggleInline = function(key, typeName, btn) {
+    expandedInline[key] = !expandedInline[key];
+    renderCenter(currentClass);
+  };
+  window._selectAttr = function(el) {
+    document.querySelectorAll('.attr-row.selected').forEach(r => r.classList.remove('selected'));
+    el.classList.add('selected');
+    renderRight(el);
+  };
+
+  // Expand/Collapse all
+  document.getElementById('expandAllBtn').addEventListener('click', () => {
+    document.querySelectorAll('.tree-section-body').forEach(b => b.classList.remove('collapsed'));
+    document.querySelectorAll('.tree-section-header .arrow').forEach(a => a.classList.add('open'));
+  });
+  document.getElementById('collapseAllBtn').addEventListener('click', () => {
+    document.querySelectorAll('.tree-section-body').forEach(b => b.classList.add('collapsed'));
+    document.querySelectorAll('.tree-section-header .arrow').forEach(a => a.classList.remove('open'));
+  });
+
+  // Click on class list
+  document.getElementById('classList').addEventListener('click', (e) => {
+    const item = e.target.closest('.class-item');
+    if (item) navigateTo(item.dataset.class, true);
+  });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'k' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); searchInput.focus(); return; }
+    if (e.key === '/' && document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); return; }
+    if ((e.key === 'ArrowLeft' && e.altKey)) { e.preventDefault(); document.getElementById('backBtn').click(); return; }
+    if ((e.key === 'ArrowRight' && e.altKey)) { e.preventDefault(); document.getElementById('fwdBtn').click(); return; }
+    if (document.activeElement === searchInput || document.activeElement.tagName === 'INPUT') {
+      const filtered = document.getElementById('classList')._filtered || [];
+      if (e.key === 'ArrowDown') { e.preventDefault(); listHighlightIdx = Math.min(listHighlightIdx + 1, filtered.length - 1); renderList(); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); listHighlightIdx = Math.max(listHighlightIdx - 1, 0); renderList(); }
+      if (e.key === 'Enter' && listHighlightIdx >= 0 && filtered[listHighlightIdx]) { e.preventDefault(); navigateTo(filtered[listHighlightIdx], true); }
     }
+  });
 
-    if (data.prerequisite) {
-        html += '<div class="detail-section"><div class="detail-label">Prerequisite</div>';
-        html += '<div class="detail-value">' + escHtml(data.prerequisite) + '</div></div>';
-    }
-
-    if (fromClass) {
-        html += '<div class="detail-section"><div class="detail-label">Inherited From</div>';
-        html += '<div class="detail-value"><a onclick="selectClass(\'' + fromClass.replace(/'/g, "\\'") + '\', true)">' + escHtml(fromClass) + '</a></div></div>';
-    }
-
-    panel.innerHTML = html;
-}
-
-function renderDetail(data) {
-    const panel = document.getElementById('rightPanel');
-    panel.innerHTML = '<div class="detail-placeholder">Click an attribute or function to see details</div>';
-}
-
-// ── Toggles ──
-function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme');
-    if (current === 'light') {
-        document.documentElement.removeAttribute('data-theme');
-        document.getElementById('themeToggle').innerHTML = '☀️ Light';
-        localStorage.setItem('oehr-theme', 'dark');
-    } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.getElementById('themeToggle').innerHTML = '🌙 Dark';
-        localStorage.setItem('oehr-theme', 'light');
-    }
-}
-
-function toggleFunctions() {
-    showFunctions = !showFunctions;
-    const btn = document.getElementById('fnToggle');
-    if (showFunctions) {
-        btn.classList.add('active');
-        localStorage.setItem('oehr-fn', 'visible');
-    } else {
-        btn.classList.remove('active');
-        localStorage.setItem('oehr-fn', 'hidden');
-    }
-    const sec = document.getElementById('fnSection');
-    if (sec) sec.style.display = showFunctions ? '' : 'none';
-}
-
-// ── Start ──
-init();
+  // Init
+  renderList();
+})();
 </script>
 </body>
 </html>
