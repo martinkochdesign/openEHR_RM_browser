@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>openEHR RM Glossary Browser</title>
+<title>openEHR RM Glossary Explorer</title>
 <style>
 :root {
   --bg-primary: #0f1117;
@@ -162,8 +162,8 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 .attr-type { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 .attr-type a { color: var(--accent); text-decoration: none; cursor: pointer; }
 .attr-type a:hover { text-decoration: underline; }
-/*.attr-from { font-size: 10px; color: var(--text-muted); font-style: italic; white-space: nowrap; }
-*/
+.attr-from { font-size: 10px; color: var(--text-muted); font-style: italic; white-space: nowrap; }
+
 .attr-from {
     font-size: 11px;
     color: var(--text-muted);
@@ -271,7 +271,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 <!-- About Modal -->
 <div class="modal-overlay" id="aboutModal">
   <div class="modal">
-    <h3>openEHR RM Glossary Browser</h3>
+    <h3>openEHR RM Glossary Explorer</h3>
     <p>An interactive browser for the <a href="https://specifications.openehr.org/releases/RM/latest" target="_blank">openEHR Reference Model</a> class hierarchy.</p>
     <p><strong>Author:</strong> Martin Andreas Koch, PhD<br>
     Servei Català de la Salut (CatSalut)</p>
@@ -311,7 +311,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
   let historyIdx = -1;
   let showFunctions = true;
   let searchTerm = '';
-  let activeSearchFields = {className:true, classDesc:true, attrName:true, attrDesc:true, attrType:true, funcName:true};
+  let activeSearchFields = {className:true, classDesc:false, attrName:false, attrDesc:false, attrType:false, funcName:false};
   let activeTypeFilter = 'all';
   let listHighlightIdx = -1;
   let expandedInline = {}; // key: "className|attrName|depth" -> true
@@ -459,6 +459,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
       }
     }
     walk(className);
+    
     return result;
   }
 
@@ -549,7 +550,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
     let html = '<div class="class-header">';
     html += `<h2>${highlightText(className, searchTerm)} <span class="class-tag ${getTagClass(type)}">${type === 'Enumeration' ? 'Enum' : type}</span></h2>`;
     if (c.description) html += `<div class="desc">${highlightText(c.description, searchTerm)}</div>`;
-    if (c.url) html += `<a class="spec-link" href="${escapeHtml(c.url)}" target="_blank">📖 View in openEHR Specification</a>`;
+    if (c.url) html += `<a class="spec-link" href="${escapeHtml(c.url)}" target="_blank">📖 openEHR Specification</a>`;
     if (c.specialization && c.specialization.length) {
       html += `<div class="specializations">Specializations: ${c.specialization.map(s => data[s] ? `<a onclick="window._nav('${s}')">${escapeHtml(s)}</a>` : escapeHtml(s)).join(', ')}</div>`;
     }
@@ -604,23 +605,29 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
   }
 
   function renderAttrRow(aName, aVal, fromClass, contextClass, depth) {
+    
     const existence = aVal.existence || '';
     const isMandatory = existence.startsWith('1');
     const types = aVal.type || [];
     const primaryType = types.length > 0 ? types[types.length > 1 ? 1 : 0] : '';
     const containerType = types.length > 1 ? types[0] : '';
     const canExpand = primaryType && data[primaryType] && data[primaryType].attributes;
+
+
     const inlineKey = contextClass + '|' + aName + '|' + depth;
     const isExpanded = expandedInline[inlineKey];
 
-    let html = `<div class="attr-row${fromClass ? ' inherited' : ''}" data-attr="${escapeHtml(aName)}" data-kind="attr" data-from="${fromClass || ''}" onclick="window._selectAttr(this)">`;
+    let html = `<div class="attr-row${fromClass ? ' inherited' : ''}" data-attr="${escapeHtml(aName)}" data-parenttype ="${contextClass.split(">").pop()}" data-mytype = "${primaryType}" data-kind="attr" data-from="${fromClass || ''}" onclick="window._selectAttr(this)">`;
     if (canExpand) {
       html += `<span class="attr-expand-btn${isExpanded ? ' open' : ''}" onclick="event.stopPropagation(); window._toggleInline('${escapeHtml(inlineKey)}', '${escapeHtml(primaryType)}', this)">▶</span>`;
     } else {
       html += `<span class="attr-expand-btn placeholder">▶</span>`;
     }
     html += `<span class="attr-name">${highlightText(aName, searchTerm)}</span>`;
+
+
     html += `<span class="attr-existence ${isMandatory ? 'mandatory' : 'optional'}">${existence}</span>`;
+
     let typeHtml = '';
     if (containerType) typeHtml += escapeHtml(containerType) + '&lt;';
     if (data[primaryType]) {
@@ -628,11 +635,20 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
     } else {
       typeHtml += highlightText(primaryType, searchTerm);
     }
+
+
     if (containerType) typeHtml += '&gt;';
     html += `<span class="attr-type">${typeHtml}</span>`;
+
+    html+=`${data[primaryType].abstract ? '<span class="class-tag tag-abstract" style="font-size:8pt;">Abstract</span>': '' }`
+
     if (fromClass) {
       html += `<span class="attr-from">from <a onclick="event.stopPropagation(); window._nav('${fromClass}')">${escapeHtml(fromClass)}</a></span>`;
     }
+
+    
+
+
     html += '</div>';
 
     // Inline expanded children
@@ -661,7 +677,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
     const existence = fVal.existence || '';
     const isMandatory = existence.startsWith('1');
 
-    let html = `<div class="attr-row${fromClass ? ' inherited' : ''}" data-attr="${escapeHtml(fName)}" data-kind="func" data-from="${fromClass || ''}" onclick="window._selectAttr(this)">`;
+    let html = `<div class="attr-row${fromClass ? ' inherited' : ''}" data-attr="${escapeHtml(fName)}" data-kind="func" data-parenttype="${currentClass}" data-from="${fromClass || ''}" onclick="window._selectAttr(this)">`;
     html += `<span class="attr-expand-btn placeholder">▶</span>`;
     html += `<span class="attr-name" style="font-style:italic">ƒ ${highlightText(fName, searchTerm)}</span>`;
     html += `<span class="attr-existence ${isMandatory ? 'mandatory' : 'optional'}">${existence}</span>`;
@@ -691,7 +707,10 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
     const kind = el.dataset.kind;
     const name = el.dataset.attr;
     const from = el.dataset.from;
-    const c = data[currentClass];
+    const parentClass = el.dataset.parenttype;
+    /*const c = data[currentClass];*/
+    const c = data[parentClass];
+
     if (!c) return;
 
     let item;
@@ -700,7 +719,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
       if (!item && from && data[from]) item = data[from].attributes && data[from].attributes[name];
       // Also check inherited
       if (!item) {
-        const inh = getAllInherited(currentClass, 'attributes');
+        const inh = getAllInherited(parentClass, 'attributes');
         const found = inh.find(i => i.name === name);
         if (found) item = found.val;
       }
@@ -708,7 +727,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
       item = (c.functions && c.functions[name]) || null;
       if (!item && from && data[from]) item = data[from].functions && data[from].functions[name];
       if (!item) {
-        const inh = getAllInherited(currentClass, 'functions');
+        const inh = getAllInherited(parentClass, 'functions');
         const found = inh.find(i => i.name === name);
         if (found) item = found.val;
       }
