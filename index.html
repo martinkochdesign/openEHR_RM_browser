@@ -311,7 +311,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
   let historyIdx = -1;
   let showFunctions = true;
   let searchTerm = '';
-  let activeSearchFields = {className:true, classDesc:false, attrName:false, attrDesc:false, attrType:false, funcName:false};
+  let activeSearchFields = {className:true, classDesc:true, attrName:true, attrDesc:true, attrType:true, funcName:true};
   let activeTypeFilter = 'all';
   let listHighlightIdx = -1;
   let expandedInline = {}; // key: "className|attrName|depth" -> true
