@@ -612,8 +612,8 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
     const primaryType = types.length > 0 ? types[types.length > 1 ? 1 : 0] : '';
     const containerType = types.length > 1 ? types[0] : '';
 
-    /*const excluded = ["Ordered", "Any", "Ordered_Numeric", "String"];*/
-    const excluded = ["Ordered"];
+    const excluded = ["Ordered", "Any", "Ordered_Numeric", "String"];
+    /*const excluded = ["Ordered"];*/
     const canExpand = primaryType && data[primaryType] && (data[primaryType].attributes || (data[primaryType].inherit && !excluded.includes(data[primaryType].inherit) ));
 
     /*console.log(aName, primaryType, canExpand)
