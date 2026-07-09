@@ -205,6 +205,18 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 
 /* Keyboard hint */
 .kbd { font-size: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 1px 4px; border-radius: 3px; color: var(--text-muted); font-family: monospace; }
+
+.spec-selector {
+  margin: 4px 0 4px 0px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 9pt;
+  cursor: pointer;
+}
+
 </style>
 </head>
 <body>
@@ -283,6 +295,19 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 </div>
 
 <script>
+
+// Global state to track which specialization is selected per inline expansion
+const expandedInlineSpec = {};
+window._selectSpec = function(inlineKey, specKey, value) {
+  console.log(inlineKey, specKey, value)
+  expandedInlineSpec[specKey] = value;
+  // Re-render the same way you currently re-render after _toggleInline
+  // If _toggleInline calls some render function, call the same one here.
+  // If it manipulates DOM directly, you can do:
+  window._toggleInline(inlineKey, value, document.querySelector(`[data-inline-key="${inlineKey}"] .attr-expand-btn`));
+  window._toggleInline(inlineKey, value, document.getElementById(`span_${inlineKey}`));
+};
+
 (function(){
   // --- Data ---
   const data = typeof glossary_data !== 'undefined' ? glossary_data : {};
@@ -618,9 +643,11 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
     const inlineKey = contextClass + '|' + aName + '|' + depth;
     const isExpanded = expandedInline[inlineKey];
 
+
     let html = `<div class="attr-row${fromClass ? ' inherited' : ''}" data-attr="${escapeHtml(aName)}" data-parenttype ="${contextClass.split(">").pop()}" data-mytype = "${primaryType}" data-kind="attr" data-from="${fromClass || ''}" onclick="window._selectAttr(this)">`;
     if (canExpand) {
-      html += `<span class="attr-expand-btn${isExpanded ? ' open' : ''}" onclick="event.stopPropagation(); window._toggleInline('${escapeHtml(inlineKey)}', '${escapeHtml(primaryType)}', this)">▶</span>`;
+      html += `<span id="span_${escapeHtml(inlineKey)}" class="attr-expand-btn${isExpanded ? ' open' : ''}" onclick="event.stopPropagation(); window._toggleInline('${escapeHtml(inlineKey)}', '${escapeHtml(primaryType)}', this)">▶</span>`;
+
     } else {
       html += `<span class="attr-expand-btn placeholder">▶</span>`;
     }
@@ -641,8 +668,15 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
     if (containerType) typeHtml += '&gt;';
     html += `<span class="attr-type">${typeHtml}</span>`;
 
+    let specializations = []
+    if (data[primaryType].abstract){
+      specializations = data[primaryType].specialization;
+    }
+
     if (data[primaryType]){
-      html+=`${data[primaryType].abstract ? '<span class="class-tag tag-abstract" style="font-size:8pt;">Abstract</span>': '' }`
+      html+=`${data[primaryType].abstract ? `<span class="class-tag tag-abstract" style="font-size:8pt;">Abstract</span>`: '' }`
+
+
     }
     if (fromClass) {
       html += `<span class="attr-from">from <a onclick="event.stopPropagation(); window._nav('${fromClass}')">${escapeHtml(fromClass)}</a></span>`;
@@ -651,16 +685,43 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
     html += '</div>';
 
     // Inline expanded children
-    if (isExpanded && canExpand) {
-      let expandType = primaryType;
-      if (containerType=="DV_INTERVAL"){
-          expandType = "DV_INTERVAL";
+if (isExpanded && canExpand) {
+  let expandType = primaryType;
+  if (containerType === "DV_INTERVAL") {
+    expandType = "DV_INTERVAL";
+  }
+  html += `<div class="inline-children">`;
+  // If abstract, show a specialization picker
+  if (data[expandType] && data[expandType].abstract && data[expandType].specialization && data[expandType].specialization.length > 0) {
+    const selectedKey = inlineKey + '|spec';
+    const selectedSpec = expandedInlineSpec[selectedKey] || '';
+    html += `<div class="inline-class-label">${escapeHtml(expandType)} is abstract — choose a specialization:</div>`;
+    /*html += `<select class="spec-selector" onchange="event.stopPropagation(); window._selectSpec('${escapeHtml(inlineKey)}', '${escapeHtml(selectedKey)}', this.value)">`;*/
+    
+    html += `<select class="spec-selector" onchange="event.stopPropagation();window._selectSpec('${escapeHtml(inlineKey)}', '${escapeHtml(selectedKey)}', this.value)">`;
+    
+      html += `<option value="">— select specialization —</option>`;
+    // Also include the abstract class itself as an option
+    html += `<option value="${escapeHtml(expandType)}"${selectedSpec === expandType ? ' selected' : ''}>${escapeHtml(expandType)} (abstract)</option>`;
+    for (const spec of data[expandType].specialization) {
+      if (data[spec]) {
+        const isAbstract = data[spec].abstract ? ' (abstract)' : '';
+        html += `<option value="${escapeHtml(spec)}"${selectedSpec === spec ? ' selected' : ''}>${escapeHtml(spec)}${isAbstract}</option>`;
       }
-      html += `<div class="inline-children">`;
-      html += `<div class="inline-class-label">${escapeHtml(expandType)} attributes:</div>`;
-      const childClass = data[expandType];
-      let childAttrs = childClass.attributes ? Object.entries(childClass.attributes) : [];
-      let childInhAttrs = getAllInherited(expandType, 'attributes');
+    }
+    html += `</select>`;
+    // If a specialization is selected, render its attributes
+    if (selectedSpec && data[selectedSpec]) {
+      expandType = selectedSpec;
+    } else {
+      html += `</div>`;
+      return html; // No selection yet, don't render attributes
+    }
+  }
+  html += `<div class="inline-class-label">${escapeHtml(expandType)} attributes:</div>`;
+  const childClass = data[expandType];
+  let childAttrs = childClass.attributes ? Object.entries(childClass.attributes) : [];
+  let childInhAttrs = getAllInherited(expandType, 'attributes');
       
       /*console.log(childAttrs)*/
 
@@ -688,7 +749,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
       }
       
 
-      for (const [cName, cVal] of childAttrs) {
+        for (const [cName, cVal] of childAttrs) {
         html += renderAttrRow(cName, cVal, null, contextClass + '>' + expandType, depth + 1);
       }
       for (const item of childInhAttrs) {
@@ -806,6 +867,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
     body.classList.toggle('collapsed');
   };
   window._toggleInline = function(key, typeName, btn) {
+    console.log(key,typeName,btn)
     expandedInline[key] = !expandedInline[key];
     renderCenter(currentClass);
   };
