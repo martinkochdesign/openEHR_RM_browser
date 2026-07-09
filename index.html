@@ -299,7 +299,6 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 // Global state to track which specialization is selected per inline expansion
 const expandedInlineSpec = {};
 window._selectSpec = function(inlineKey, specKey, value) {
-  console.log(inlineKey, specKey, value)
   expandedInlineSpec[specKey] = value;
   // Re-render the same way you currently re-render after _toggleInline
   // If _toggleInline calls some render function, call the same one here.
@@ -643,6 +642,7 @@ window._selectSpec = function(inlineKey, specKey, value) {
     const inlineKey = contextClass + '|' + aName + '|' + depth;
     const isExpanded = expandedInline[inlineKey];
 
+    
 
     let html = `<div class="attr-row${fromClass ? ' inherited' : ''}" data-attr="${escapeHtml(aName)}" data-parenttype ="${contextClass.split(">").pop()}" data-mytype = "${primaryType}" data-kind="attr" data-from="${fromClass || ''}" onclick="window._selectAttr(this)">`;
     if (canExpand) {
@@ -669,14 +669,16 @@ window._selectSpec = function(inlineKey, specKey, value) {
     html += `<span class="attr-type">${typeHtml}</span>`;
 
     let specializations = []
-    if (data[primaryType].abstract){
-      specializations = data[primaryType].specialization;
+    if (data[primaryType]){
+      if (data[primaryType].abstract){
+        specializations = data[primaryType].specialization;
+      }
     }
+
+   
 
     if (data[primaryType]){
       html+=`${data[primaryType].abstract ? `<span class="class-tag tag-abstract" style="font-size:8pt;">Abstract</span>`: '' }`
-
-
     }
     if (fromClass) {
       html += `<span class="attr-from">from <a onclick="event.stopPropagation(); window._nav('${fromClass}')">${escapeHtml(fromClass)}</a></span>`;
@@ -867,7 +869,6 @@ if (isExpanded && canExpand) {
     body.classList.toggle('collapsed');
   };
   window._toggleInline = function(key, typeName, btn) {
-    console.log(key,typeName,btn)
     expandedInline[key] = !expandedInline[key];
     renderCenter(currentClass);
   };
