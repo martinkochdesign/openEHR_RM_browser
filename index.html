@@ -228,11 +228,11 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
     </div>
     <div class="search-fields" id="searchFields">
       <button class="search-field-btn active" data-field="className">Class</button>
-      <button class="search-field-btn active" data-field="classDesc">Description</button>
-      <button class="search-field-btn active" data-field="attrName">Attr Name</button>
-      <button class="search-field-btn active" data-field="attrDesc">Attr Desc</button>
-      <button class="search-field-btn active" data-field="attrType">Type</button>
-      <button class="search-field-btn active" data-field="funcName">Func Name</button>
+      <button class="search-field-btn" data-field="classDesc">Description</button>
+      <button class="search-field-btn" data-field="attrName">Attr Name</button>
+      <button class="search-field-btn" data-field="attrDesc">Attr Desc</button>
+      <button class="search-field-btn" data-field="attrType">Type</button>
+      <button class="search-field-btn" data-field="funcName">Func Name</button>
     </div>
     <div class="type-filters" id="typeFilters">
       <button class="type-filter-btn active" data-type="all">All</button>
@@ -311,7 +311,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
   let historyIdx = -1;
   let showFunctions = true;
   let searchTerm = '';
-  let activeSearchFields = {className:true, classDesc:true, attrName:true, attrDesc:true, attrType:true, funcName:true};
+  let activeSearchFields = {className:true, classDesc:false, attrName:false, attrDesc:false, attrType:false, funcName:false};
   let activeTypeFilter = 'all';
   let listHighlightIdx = -1;
   let expandedInline = {}; // key: "className|attrName|depth" -> true
@@ -609,16 +609,11 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
     const existence = aVal.existence || '';
     const isMandatory = existence.startsWith('1');
     const types = aVal.type || [];
-    const primaryType = types.length > 0 ? types[types.length > 1 ? 1 : 0] : '';
+    let primaryType = types.length > 0 ? types[types.length > 1 ? 1 : 0] : '';
     const containerType = types.length > 1 ? types[0] : '';
 
     const excluded = ["Ordered", "Any", "Ordered_Numeric", "String"];
-    /*const excluded = ["Ordered"];*/
     const canExpand = primaryType && data[primaryType] && (data[primaryType].attributes || (data[primaryType].inherit && !excluded.includes(data[primaryType].inherit) ));
-
-    /*console.log(aName, primaryType, canExpand)
-    console.log(data[primaryType])*/
-
 
     const inlineKey = contextClass + '|' + aName + '|' + depth;
     const isExpanded = expandedInline[inlineKey];
@@ -657,16 +652,47 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 
     // Inline expanded children
     if (isExpanded && canExpand) {
+      let expandType = primaryType;
+      if (containerType=="DV_INTERVAL"){
+          expandType = "DV_INTERVAL";
+      }
       html += `<div class="inline-children">`;
-      html += `<div class="inline-class-label">${escapeHtml(primaryType)} attributes:</div>`;
-      const childClass = data[primaryType];
-      const childAttrs = childClass.attributes ? Object.entries(childClass.attributes) : [];
-      const childInhAttrs = getAllInherited(primaryType, 'attributes');
+      html += `<div class="inline-class-label">${escapeHtml(expandType)} attributes:</div>`;
+      const childClass = data[expandType];
+      let childAttrs = childClass.attributes ? Object.entries(childClass.attributes) : [];
+      let childInhAttrs = getAllInherited(expandType, 'attributes');
+      
+      /*console.log(childAttrs)*/
+
+      if (childAttrs && childAttrs!=[]){
+        childAttrs = childAttrs.map(item => {
+            const val = Array.isArray(item) ? item[1] : item.val;
+            const newVal = {
+                ...val,
+                type: val.type.map(t => t === "T" ? primaryType : t)
+            };
+            return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
+        });
+      }
+  
+
+      if (childInhAttrs && childInhAttrs!=[]){ 
+          childInhAttrs = childInhAttrs.map(item => {
+            const val = Array.isArray(item) ? item[1] : item.val;
+            const newVal = {
+                ...val,
+                type: val.type.map(t => t === "T" ? primaryType : t)
+            };
+            return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
+        });
+      }
+      
+
       for (const [cName, cVal] of childAttrs) {
-        html += renderAttrRow(cName, cVal, null, contextClass + '>' + primaryType, depth + 1);
+        html += renderAttrRow(cName, cVal, null, contextClass + '>' + expandType, depth + 1);
       }
       for (const item of childInhAttrs) {
-        html += renderAttrRow(item.name, item.val, item.from, contextClass + '>' + primaryType, depth + 1);
+        html += renderAttrRow(item.name, item.val, item.from, contextClass + '>' + expandType, depth + 1);
       }
       html += '</div>';
     }
