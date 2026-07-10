@@ -299,14 +299,24 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 
 // Global state to track which specialization is selected per inline expansion
 const expandedInlineSpec = {};
-window._selectSpec = function(inlineKey, specKey, value) {
+window._selectSpec = function(inlineKey, specKey, value, specDepth) {
+
   expandedInlineSpec[specKey] = value;
+
+  // Clear all deeper selections so stale child dropdowns don't persist
+  let d = specDepth + 1;
+  while (expandedInlineSpec[inlineKey + '|spec' + d]) {
+    delete expandedInlineSpec[inlineKey + '|spec' + d];
+    d++;
+  }
   // Re-render the same way you currently re-render after _toggleInline
   // If _toggleInline calls some render function, call the same one here.
   // If it manipulates DOM directly, you can do:
   window._toggleInline(inlineKey, value, document.querySelector(`[data-inline-key="${inlineKey}"] .attr-expand-btn`));
   window._toggleInline(inlineKey, value, document.getElementById(`span_${inlineKey}`));
 };
+
+
 
 (function(){
   // --- Data ---
@@ -691,81 +701,84 @@ window._selectSpec = function(inlineKey, specKey, value) {
   
     html += '</div>';
 
-    // Inline expanded children
+ // Inline expanded children
 if (isExpanded && canExpand) {
   let expandType = primaryType;
   if (containerType === "DV_INTERVAL") {
     expandType = "DV_INTERVAL";
   }
   html += `<div class="inline-children">`;
-  // If abstract, show a specialization picker
-  if (data[expandType] && data[expandType].abstract && data[expandType].specialization && data[expandType].specialization.length > 0) {
-    const selectedKey = inlineKey + '|spec';
+
+  // Keep prompting as long as the current type is abstract
+  let specDepth = 0;
+  while (data[expandType] 
+         && data[expandType].abstract 
+         && data[expandType].specialization 
+         && data[expandType].specialization.length > 0) {
+
+    const selectedKey = inlineKey + '|spec' + specDepth;
     const selectedSpec = expandedInlineSpec[selectedKey] || '';
+
     html += `<div class="inline-class-label">${escapeHtml(expandType)} is abstract — choose a specialization:</div>`;
-    /*html += `<select class="spec-selector" onchange="event.stopPropagation(); window._selectSpec('${escapeHtml(inlineKey)}', '${escapeHtml(selectedKey)}', this.value)">`;*/
-    
-    html += `<select class="spec-selector" onchange="event.stopPropagation();window._selectSpec('${escapeHtml(inlineKey)}', '${escapeHtml(selectedKey)}', this.value)">`;
-    
-      html += `<option value="">— select specialization —</option>`;
-    // Also include the abstract class itself as an option
+    html += `<select class="spec-selector" onchange="event.stopPropagation(); window._selectSpec('${escapeHtml(inlineKey)}', '${escapeHtml(selectedKey)}', this.value, ${specDepth})">`;
+    html += `<option value="">— select specialization —</option>`;
     html += `<option value="${escapeHtml(expandType)}"${selectedSpec === expandType ? ' selected' : ''}>${escapeHtml(expandType)} (abstract)</option>`;
+
     for (const spec of data[expandType].specialization) {
       if (data[spec]) {
-        const isAbstract = data[spec].abstract ? ' (abstract)' : '';
-        html += `<option value="${escapeHtml(spec)}"${selectedSpec === spec ? ' selected' : ''}>${escapeHtml(spec)}${isAbstract}</option>`;
+        const tag = data[spec].abstract ? ' (abstract)' : '';
+        html += `<option value="${escapeHtml(spec)}"${selectedSpec === spec ? ' selected' : ''}>${escapeHtml(spec)}${tag}</option>`;
       }
     }
     html += `</select>`;
-    // If a specialization is selected, render its attributes
-    if (selectedSpec && data[selectedSpec]) {
-      expandType = selectedSpec;
-    } else {
+
+    if (!selectedSpec || !data[selectedSpec]) {
+      // Nothing selected yet — stop, don't render attributes
       html += `</div>`;
-      return html; // No selection yet, don't render attributes
+      return html;
     }
+
+    // User picked the abstract itself — break out and show its own attrs
+    if (selectedSpec === expandType) {
+      break;
+    }
+
+    // Move to the selected type — if it's also abstract, the while loop continues
+    expandType = selectedSpec;
+    specDepth++;
   }
+
+  // We've reached a concrete type (or user chose to view abstract's own attrs)
   html += `<div class="inline-class-label">${escapeHtml(expandType)} attributes:</div>`;
   const childClass = data[expandType];
   let childAttrs = childClass.attributes ? Object.entries(childClass.attributes) : [];
   let childInhAttrs = getAllInherited(expandType, 'attributes');
-      
-      /*console.log(childAttrs)*/
 
-      if (childAttrs && childAttrs!=[]){
-        childAttrs = childAttrs.map(item => {
-            const val = Array.isArray(item) ? item[1] : item.val;
-            const newVal = {
-                ...val,
-                type: val.type.map(t => t === "T" ? primaryType : t)
-            };
-            return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
-        });
-      }
-  
+  if (childAttrs && childAttrs != []) {
+    childAttrs = childAttrs.map(item => {
+      const val = Array.isArray(item) ? item[1] : item.val;
+      const newVal = { ...val, type: val.type.map(t => t === "T" ? primaryType : t) };
+      return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
+    });
+  }
 
-      if (childInhAttrs && childInhAttrs!=[]){ 
-          childInhAttrs = childInhAttrs.map(item => {
-            const val = Array.isArray(item) ? item[1] : item.val;
-            const newVal = {
-                ...val,
-                type: val.type.map(t => t === "T" ? primaryType : t)
-            };
-            return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
-        });
-      }
-      
+  if (childInhAttrs && childInhAttrs != []) {
+    childInhAttrs = childInhAttrs.map(item => {
+      const val = Array.isArray(item) ? item[1] : item.val;
+      const newVal = { ...val, type: val.type.map(t => t === "T" ? primaryType : t) };
+      return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
+    });
+  }
 
-        for (const [cName, cVal] of childAttrs) {
-        html += renderAttrRow(cName, cVal, null, contextClass + '>' + expandType, depth + 1);
-      }
-      for (const item of childInhAttrs) {
-        html += renderAttrRow(item.name, item.val, item.from, contextClass + '>' + expandType, depth + 1);
-      }
-      html += '</div>';
-    }
-
-    return html;
+  for (const [cName, cVal] of childAttrs) {
+    html += renderAttrRow(cName, cVal, null, contextClass + '>' + expandType, depth + 1);
+  }
+  for (const item of childInhAttrs) {
+    html += renderAttrRow(item.name, item.val, item.from, contextClass + '>' + expandType, depth + 1);
+  }
+  html += '</div>';
+}
+return html;
   }
 
   function renderFuncRow(fName, fVal, fromClass) {
