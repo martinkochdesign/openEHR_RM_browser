@@ -574,10 +574,14 @@ window._selectSpec = function(inlineKey, specKey, value) {
     let html = '<div class="class-header">';
     html += `<h2>${highlightText(className, searchTerm)} <span class="class-tag ${getTagClass(type)}">${type === 'Enumeration' ? 'Enum' : type}</span></h2>`;
     if (c.description) html += `<div class="desc">${highlightText(c.description, searchTerm)}</div>`;
-    if (c.url) html += `<a class="spec-link" href="${escapeHtml(c.url)}" target="_blank">📖 openEHR Specification</a>`;
-    if (c.specialization && c.specialization.length) {
+     if (c.inherit && c.inherit.length) {
+      html += `<div class="specializations">Inherits: ${c.inherit.split(',').map(s => data[s] ? `<a onclick="window._nav('${s}')">${escapeHtml(s)}</a>` : escapeHtml(s)).join(', ')}</div>`;
+    }
+        if (c.specialization && c.specialization.length) {
       html += `<div class="specializations">Specializations: ${c.specialization.map(s => data[s] ? `<a onclick="window._nav('${s}')">${escapeHtml(s)}</a>` : escapeHtml(s)).join(', ')}</div>`;
     }
+    if (c.url) html += `<a class="spec-link" href="${escapeHtml(c.url)}" target="_blank">📖 openEHR Specification</a>`;
+
     html += '</div>';
 
     // Own attributes
