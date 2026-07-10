@@ -220,6 +220,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 </style>
 </head>
 <body>
+
 <script src="https://martinkochdesign.github.io/archetype_companion/glossary_data.js"></script>
 
 <div class="header">
@@ -575,7 +576,7 @@ window._selectSpec = function(inlineKey, specKey, value) {
     html += `<h2>${highlightText(className, searchTerm)} <span class="class-tag ${getTagClass(type)}">${type === 'Enumeration' ? 'Enum' : type}</span></h2>`;
     if (c.description) html += `<div class="desc">${highlightText(c.description, searchTerm)}</div>`;
      if (c.inherit && c.inherit.length) {
-      html += `<div class="specializations">Inherits: ${c.inherit.split(',').map(s => data[s] ? `<a onclick="window._nav('${s}')">${escapeHtml(s)}</a>` : escapeHtml(s)).join(', ')}</div>`;
+      html += `<div class="specializations">Inherits: ${c.inherit.split(', ').map(s => data[s] ? `<a onclick="window._nav('${s}')">${escapeHtml(s)}</a>` : escapeHtml(s)).join(', ')}</div>`;
     }
         if (c.specialization && c.specialization.length) {
       html += `<div class="specializations">Specializations: ${c.specialization.map(s => data[s] ? `<a onclick="window._nav('${s}')">${escapeHtml(s)}</a>` : escapeHtml(s)).join(', ')}</div>`;
