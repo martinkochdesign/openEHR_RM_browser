@@ -707,6 +707,9 @@ if (isExpanded && canExpand) {
   if (containerType === "DV_INTERVAL") {
     expandType = "DV_INTERVAL";
   }
+  if (containerType === "HISTORY") {
+    expandType = "HISTORY";
+  }
   html += `<div class="inline-children">`;
 
   // Keep prompting as long as the current type is abstract
@@ -757,7 +760,11 @@ if (isExpanded && canExpand) {
   if (childAttrs && childAttrs != []) {
     childAttrs = childAttrs.map(item => {
       const val = Array.isArray(item) ? item[1] : item.val;
-      const newVal = { ...val, type: val.type.map(t => t === "T" ? primaryType : t) };
+      replaceType = primaryType;
+      if(primaryType=="EVENT"){replaceType="ITEM_STRUCTURE";}
+      if(primaryType=="ORIGINAL_VERSION"){replaceType="T";}
+      
+      const newVal = { ...val, type: val.type.map(t => t === "T" ? replaceType : t) };
       return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
     });
   }
@@ -765,7 +772,10 @@ if (isExpanded && canExpand) {
   if (childInhAttrs && childInhAttrs != []) {
     childInhAttrs = childInhAttrs.map(item => {
       const val = Array.isArray(item) ? item[1] : item.val;
-      const newVal = { ...val, type: val.type.map(t => t === "T" ? primaryType : t) };
+            replaceType = primaryType;
+      if(primaryType=="EVENT"){replaceType="ITEM_STRUCTURE";}
+      if(primaryType=="ORIGINAL_VERSION"){replaceType="T";}
+      const newVal = { ...val, type: val.type.map(t => t === "T" ? replaceType : t) };
       return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
     });
   }
