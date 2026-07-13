@@ -672,7 +672,10 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
     html += `<span class="attr-existence ${isMandatory ? 'mandatory' : 'optional'}">${existence}</span>`;
 
     let typeHtml = '';
-    if (containerType) typeHtml += escapeHtml(containerType) + '&lt;';
+    /*if (containerType) typeHtml += escapeHtml(containerType) + '&lt;';*/
+
+    if (containerType) typeHtml += `<a onclick="event.stopPropagation(); window._nav('${containerType}')">${escapeHtml(containerType)}</a>` + '&lt;';
+
     if (data[primaryType]) {
       typeHtml += `<a onclick="event.stopPropagation(); window._nav('${primaryType}')">${highlightText(primaryType, searchTerm)}</a>`;
     } else {
