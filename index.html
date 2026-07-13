@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>openEHR RM Glossary Browser</title>
+<script>
+  const page_version = 'v0.1.0';
+</script>
+
 <style>
 :root {
   --bg-primary: #0f1117;
@@ -217,6 +221,15 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
   cursor: pointer;
 }
 
+#version_info{
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  font-size: 8pt;
+  color: gray;
+  user-select: none;
+}
+
 </style>
 </head>
 <body>
@@ -232,6 +245,8 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
   <button class="header-btn" id="toggleTheme">☀️</button>
   <button class="header-btn" id="aboutBtn">About</button>
 </div>
+
+
 
 <div class="main">
   <!-- Left Panel -->
@@ -295,6 +310,8 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
   </div>
 </div>
 
+<div id="version_info"></div>
+
 <script>
 
 // Global state to track which specialization is selected per inline expansion
@@ -338,6 +355,7 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
   }
   document.getElementById('rmVersion').textContent = rmVersion ? 'RM ' + rmVersion : '';
   document.getElementById('extractionDate').textContent = extractDate ? 'Extracted: ' + extractDate : '';
+  document.getElementById('version_info').textContent = page_version ? page_version : '';
 
   // --- State ---
   let currentClass = null;
@@ -869,7 +887,7 @@ return html;
       const primary = types.length > 1 ? types[1] : types[0];
       const container = types.length > 1 ? types[0] : '';
       /*let tHtml = container ? escapeHtml(container) + '&lt;' : '';*/
-      let tHtml = container ? `<a onclick="window._nav('${container}')">${escapeHtml(container)}</a>&lt;` : escapeHtml(container) + '&lt;';
+      let tHtml = container ? `<a onclick="window._nav('${container}')">${escapeHtml(container)}</a>&lt;` : escapeHtml(container) ;
 
       tHtml += data[primary] ? `<a onclick="window._nav('${primary}')">${escapeHtml(primary)}</a>` : escapeHtml(primary);
       if (container) tHtml += '&gt;';
@@ -880,7 +898,7 @@ return html;
       const primary = types.length > 1 ? types[1] : types[0];
       const container = types.length > 1 ? types[0] : '';
       /*let tHtml = container ? escapeHtml(container) + '&lt;' : '';*/activeSearchFields
-      let tHtml = container ? `<a onclick="window._nav('${container}')">${escapeHtml(container)}</a>&lt;` : escapeHtml(container) + '&lt;';
+      let tHtml = container ? `<a onclick="window._nav('${container}')">${escapeHtml(container)}</a>&lt;` : escapeHtml(container);
       tHtml += data[primary] ? `<a onclick="window._nav('${primary}')">${escapeHtml(primary)}</a>` : escapeHtml(primary);
       if (container) tHtml += '&gt;';
       html += `<div class="detail-label">Return Type</div><div class="detail-value">${tHtml}</div>`;
