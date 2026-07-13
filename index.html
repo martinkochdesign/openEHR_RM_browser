@@ -868,7 +868,9 @@ return html;
       const types = item.type;
       const primary = types.length > 1 ? types[1] : types[0];
       const container = types.length > 1 ? types[0] : '';
-      let tHtml = container ? escapeHtml(container) + '&lt;' : '';
+      /*let tHtml = container ? escapeHtml(container) + '&lt;' : '';*/
+      let tHtml = container ? `<a onclick="window._nav('${container}')">${escapeHtml(container)}</a>&lt;` : escapeHtml(container) + '&lt;';
+
       tHtml += data[primary] ? `<a onclick="window._nav('${primary}')">${escapeHtml(primary)}</a>` : escapeHtml(primary);
       if (container) tHtml += '&gt;';
       html += `<div class="detail-label">Data Type</div><div class="detail-value">${tHtml}</div>`;
@@ -877,7 +879,8 @@ return html;
       const types = item.return_type;
       const primary = types.length > 1 ? types[1] : types[0];
       const container = types.length > 1 ? types[0] : '';
-      let tHtml = container ? escapeHtml(container) + '&lt;' : '';
+      /*let tHtml = container ? escapeHtml(container) + '&lt;' : '';*/activeSearchFields
+      let tHtml = container ? `<a onclick="window._nav('${container}')">${escapeHtml(container)}</a>&lt;` : escapeHtml(container) + '&lt;';
       tHtml += data[primary] ? `<a onclick="window._nav('${primary}')">${escapeHtml(primary)}</a>` : escapeHtml(primary);
       if (container) tHtml += '&gt;';
       html += `<div class="detail-label">Return Type</div><div class="detail-value">${tHtml}</div>`;
