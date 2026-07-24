@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>openEHR RM Glossary Browser</title>
 <script>
-  const page_version = 'v0.1.0';
+  const page_version = 'v0.2.0';
 </script>
 
 <style>
@@ -83,6 +83,23 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 .header-btn { background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; white-space: nowrap; transition: all 0.15s; }
 .header-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
 .header-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+
+/* Version selector */
+.version-select {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: all 0.15s;
+  outline: none;
+}
+.version-select:hover { background: var(--bg-hover); color: var(--text-primary); }
+.version-select:focus { border-color: var(--accent); }
+.version-select option { background: var(--bg-secondary); color: var(--text-primary); }
 
 /* Main layout */
 .main { display: flex; flex: 1; overflow: hidden; }
@@ -166,16 +183,13 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 .attr-type { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 .attr-type a { color: var(--accent); text-decoration: none; cursor: pointer; }
 .attr-type a:hover { text-decoration: underline; }
-.attr-from { font-size: 10px; color: var(--text-muted); font-style: italic; white-space: nowrap; }
-
 .attr-from {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-style: italic;
-    margin-left: auto;
-    flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-left: auto;
+  flex-shrink: 0;
 }
-
 .attr-from a { color: var(--accent); cursor: pointer; text-decoration: none; }
 .attr-from a:hover { text-decoration: underline; }
 
@@ -214,14 +228,14 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
   margin: 4px 0 4px 0px;
   padding: 4px 8px;
   border-radius: 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-color);
   background: var(--bg-secondary);
   color: var(--text-secondary);
   font-size: 9pt;
   cursor: pointer;
 }
 
-#version_info{
+#version_info {
   position: absolute;
   bottom: 3px;
   right: 3px;
@@ -229,24 +243,23 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
   color: gray;
   user-select: none;
 }
-
 </style>
 </head>
 <body>
 
-<script src="https://martinkochdesign.github.io/archetype_companion/glossary_data.js"></script>
+<!-- <script src="https://martinkochdesign.github.io/archetype_companion/glossary_data.js"></script> -->
+<script src="glossary_data.js"></script>
 
 <div class="header">
   <h1>🏥 openEHR RM Glossary</h1>
-  <span class="rm-version" id="rmVersion"></span>
+  <select id="versionSelect" class="version-select"></select>
+  <span class="rm-version" id="rmVersion" hidden></span>
   <span class="extraction-date" id="extractionDate"></span>
   <div class="header-spacer"></div>
   <button class="header-btn" id="toggleFunctions">ƒ Functions</button>
   <button class="header-btn" id="toggleTheme">☀️</button>
   <button class="header-btn" id="aboutBtn">About</button>
 </div>
-
-
 
 <div class="main">
   <!-- Left Panel -->
@@ -317,43 +330,72 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 // Global state to track which specialization is selected per inline expansion
 const expandedInlineSpec = {};
 window._selectSpec = function(inlineKey, specKey, value, specDepth) {
-
   expandedInlineSpec[specKey] = value;
-
   // Clear all deeper selections so stale child dropdowns don't persist
   let d = specDepth + 1;
   while (expandedInlineSpec[inlineKey + '|spec' + d]) {
     delete expandedInlineSpec[inlineKey + '|spec' + d];
     d++;
   }
-  // Re-render the same way you currently re-render after _toggleInline
-  // If _toggleInline calls some render function, call the same one here.
-  // If it manipulates DOM directly, you can do:
   window._toggleInline(inlineKey, value, document.querySelector(`[data-inline-key="${inlineKey}"] .attr-expand-btn`));
   window._toggleInline(inlineKey, value, document.getElementById(`span_${inlineKey}`));
 };
 
-
-
 (function(){
-  // --- Data ---
-  const data = typeof glossary_data !== 'undefined' ? glossary_data : {};
-  const classNames = Object.keys(data).sort((a,b) => a.localeCompare(b, undefined, {sensitivity:'base'}));
+  // --- Raw versioned data ---
+  const allData = typeof glossary_data !== 'undefined' ? glossary_data : {};
   const extractDate = typeof glossary_extraction_date !== 'undefined' ? glossary_extraction_date : '';
   const extractSources = typeof glossary_extraction_source !== 'undefined' ? glossary_extraction_source : [];
 
-  // RM version
-  let rmVersion = '';
-  for (const src of extractSources) {
-    const m = src.match(/releases\/(?:RM|BASE)\/([\w.]+)\//);
-    if (m && m[1] !== 'latest') { rmVersion = m[1]; break; }
+  // --- Version list: sort ascending, newest last ---
+  const releaseVersions = Object.keys(allData).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+  const newestVersion = releaseVersions[releaseVersions.length - 1];
+
+  // --- Populate version selector ---
+  const versionSelect = document.getElementById('versionSelect');
+  // Add options newest-first so newest appears at top
+  [...releaseVersions].reverse().forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = 'RM ' + v;
+    if (v === newestVersion) opt.selected = true;
+    versionSelect.appendChild(opt);
+  });
+
+  // --- Active version state ---
+  let currentVersion = newestVersion;
+
+  // Helper: get the data object for the current version
+  function vdata() {
+    return allData[currentVersion] || {};
   }
-  if (!rmVersion) {
-    for (const src of extractSources) {
-      if (src.includes('/RM/')) { rmVersion = 'latest'; break; }
-    }
+  function getClassNames() {
+    return Object.keys(vdata()).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
   }
-  document.getElementById('rmVersion').textContent = rmVersion ? 'RM ' + rmVersion : '';
+
+  // --- Version change handler ---
+  versionSelect.addEventListener('change', () => {
+    currentVersion = versionSelect.value;
+    // Reset all state
+    currentClass = null;
+    selectedAttr = null;
+    history = [];
+    historyIdx = -1;
+    expandedInline = {};
+    searchTerm = '';
+    document.getElementById('searchInput').value = '';
+    listHighlightIdx = -1;
+    // Update header badge
+    document.getElementById('rmVersion').textContent = 'RM ' + currentVersion;
+    renderList();
+    document.getElementById('centerContent').innerHTML = '<div class="empty-state">Select a class from the list to explore its structure</div>';
+    document.getElementById('rightContent').innerHTML = '<div class="empty-state">Click an attribute or function to see details</div>';
+    document.getElementById('breadcrumb').innerHTML = '';
+    updateNavButtons();
+  });
+
+  // --- Header info ---
+  document.getElementById('rmVersion').textContent = newestVersion ? 'RM ' + newestVersion : '';
   document.getElementById('extractionDate').textContent = extractDate ? 'Extracted: ' + extractDate : '';
   document.getElementById('version_info').textContent = page_version ? page_version : '';
 
@@ -364,10 +406,10 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
   let historyIdx = -1;
   let showFunctions = true;
   let searchTerm = '';
-  let activeSearchFields = {className:true, classDesc:false, attrName:false, attrDesc:false, attrType:false, funcName:false};
+  let activeSearchFields = { className: true, classDesc: false, attrName: false, attrDesc: false, attrType: false, funcName: false };
   let activeTypeFilter = 'all';
   let listHighlightIdx = -1;
-  let expandedInline = {}; // key: "className|attrName|depth" -> true
+  let expandedInline = {};
 
   // --- Theme ---
   const savedTheme = localStorage.getItem('openehr-theme') || 'dark';
@@ -429,7 +471,7 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
 
   // --- Helpers ---
   function getClassType(name) {
-    const c = data[name];
+    const c = vdata()[name];
     if (!c) return 'Class';
     if (c.type === 'Enumeration') return 'Enumeration';
     if (c.type === 'Interface') return 'Interface';
@@ -442,21 +484,17 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
     if (type === 'Enumeration') return 'tag-enum';
     return 'tag-class';
   }
-  function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-  function highlightText(text, term) {
-    return text
-    /*
-    if (!term) return escapeHtml(text);
-    const escaped = escapeHtml(text);
-    const termEsc = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const re = new RegExp('(' + termEsc.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + ')', 'gi');
-    return escaped.replace(re, '<span class="search-hl">$1</span>');
-    */
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function highlightText(text) {
+    return escapeHtml(text);
   }
   function matchesSearch(className) {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
-    const c = data[className];
+    const c = vdata()[className];
+    if (!c) return false;
     if (activeSearchFields.className && className.toLowerCase().includes(term)) return true;
     if (activeSearchFields.classDesc && c.description && c.description.toLowerCase().includes(term)) return true;
     if (c.attributes) {
@@ -477,33 +515,32 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
     const chain = [];
     let cur = className;
     const visited = new Set();
-    while (cur && data[cur] && !visited.has(cur)) {
+    while (cur && vdata()[cur] && !visited.has(cur)) {
       visited.add(cur);
       chain.unshift(cur);
-      const inh = data[cur].inherit;
+      const inh = vdata()[cur].inherit;
       if (!inh) break;
       cur = inh.split(',')[0].trim();
     }
     return chain;
   }
   function getAllInherited(className, kind) {
-    // kind: 'attributes' or 'functions'
     const result = [];
-    const ownKeys = new Set(Object.keys((data[className] && data[className][kind]) || {}));
+    const ownKeys = new Set(Object.keys((vdata()[className] && vdata()[className][kind]) || {}));
     const visited = new Set([className]);
     function walk(cn) {
-      if (!data[cn]) return;
-      const inh = data[cn].inherit;
+      if (!vdata()[cn]) return;
+      const inh = vdata()[cn].inherit;
       if (!inh) return;
       const parents = inh.split(',').map(s => s.trim());
       for (const p of parents) {
-        if (visited.has(p) || !data[p]) continue;
+        if (visited.has(p) || !vdata()[p]) continue;
         visited.add(p);
-        const items = data[p][kind];
+        const items = vdata()[p][kind];
         if (items) {
           for (const [name, val] of Object.entries(items)) {
             if (!ownKeys.has(name)) {
-              result.push({name, val, from: p});
+              result.push({ name, val, from: p });
               ownKeys.add(name);
             }
           }
@@ -512,12 +549,12 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
       }
     }
     walk(className);
-    
     return result;
   }
 
   // --- Render class list ---
   function renderList() {
+    const classNames = getClassNames();
     const container = document.getElementById('classList');
     let filtered = classNames.filter(cn => {
       const type = getClassType(cn);
@@ -529,7 +566,6 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
       }
       return matchesSearch(cn);
     });
-    // Stats
     const totalClasses = classNames.length;
     const abstractCount = classNames.filter(cn => getClassType(cn) === 'Abstract').length;
     const interfaceCount = classNames.filter(cn => getClassType(cn) === 'Interface').length;
@@ -541,7 +577,7 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
       const isActive = cn === currentClass;
       const isHighlighted = idx === listHighlightIdx;
       html += `<div class="class-item${isActive ? ' active' : ''}${isHighlighted ? ' highlighted' : ''}" data-class="${escapeHtml(cn)}" data-idx="${idx}">
-        <span class="class-name">${highlightText(cn, searchTerm)}</span>
+        <span class="class-name">${highlightText(cn)}</span>
         <span class="class-tag ${getTagClass(type)}">${type === 'Enumeration' ? 'Enum' : type}</span>
       </div>`;
     });
@@ -551,7 +587,7 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
 
   // --- Navigate to class ---
   function navigateTo(className, addToHistory) {
-    if (!data[className]) return;
+    if (!vdata()[className]) return;
     if (addToHistory !== false) {
       if (historyIdx < history.length - 1) history = history.slice(0, historyIdx + 1);
       history.push(className);
@@ -564,9 +600,8 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
     renderCenter(className);
     renderRight(null);
     updateNavButtons();
-    // Scroll active item into view
     const activeEl = document.querySelector('.class-item.active');
-    if (activeEl) activeEl.scrollIntoView({block:'nearest'});
+    if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
   }
 
   // --- Nav buttons ---
@@ -587,13 +622,12 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
 
   // --- Render center ---
   function renderCenter(className) {
-    const c = data[className];
+    const c = vdata()[className];
     if (!c) return;
     const chain = getInheritanceChain(className);
     const type = getClassType(className);
     const container = document.getElementById('centerContent');
 
-    // Breadcrumb
     const bc = document.getElementById('breadcrumb');
     bc.innerHTML = chain.map((cn, i) => {
       if (i < chain.length - 1) return `<a onclick="window._nav('${cn}')">${escapeHtml(cn)}</a><span class="sep">›</span>`;
@@ -601,19 +635,17 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
     }).join('');
 
     let html = '<div class="class-header">';
-    html += `<h2>${highlightText(className, searchTerm)} <span class="class-tag ${getTagClass(type)}">${type === 'Enumeration' ? 'Enum' : type}</span></h2>`;
-    if (c.description) html += `<div class="desc">${highlightText(c.description, searchTerm)}</div>`;
-     if (c.inherit && c.inherit.length) {
-      html += `<div class="specializations">Inherits: ${c.inherit.split(', ').map(s => data[s] ? `<a onclick="window._nav('${s}')">${escapeHtml(s)}</a>` : escapeHtml(s)).join(', ')}</div>`;
+    html += `<h2>${highlightText(className)} <span class="class-tag ${getTagClass(type)}">${type === 'Enumeration' ? 'Enum' : type}</span></h2>`;
+    if (c.description) html += `<div class="desc">${highlightText(c.description)}</div>`;
+    if (c.inherit && c.inherit.length) {
+      html += `<div class="specializations">Inherits: ${c.inherit.split(', ').map(s => vdata()[s] ? `<a onclick="window._nav('${s}')">${escapeHtml(s)}</a>` : escapeHtml(s)).join(', ')}</div>`;
     }
-        if (c.specialization && c.specialization.length) {
-      html += `<div class="specializations">Specializations: ${c.specialization.map(s => data[s] ? `<a onclick="window._nav('${s}')">${escapeHtml(s)}</a>` : escapeHtml(s)).join(', ')}</div>`;
+    if (c.specialization && c.specialization.length) {
+      html += `<div class="specializations">Specializations: ${c.specialization.map(s => vdata()[s] ? `<a onclick="window._nav('${s}')">${escapeHtml(s)}</a>` : escapeHtml(s)).join(', ')}</div>`;
     }
     if (c.url) html += `<a class="spec-link" href="${escapeHtml(c.url)}" target="_blank">📖 openEHR Specification</a>`;
-
     html += '</div>';
 
-    // Own attributes
     const ownAttrs = c.attributes ? Object.entries(c.attributes) : [];
     const inhAttrs = getAllInherited(className, 'attributes');
     const totalAttrs = ownAttrs.length + inhAttrs.length;
@@ -635,7 +667,6 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
       html += '</div></div>';
     }
 
-    // Own functions + inherited functions
     if (showFunctions) {
       const ownFuncs = c.functions ? Object.entries(c.functions) : [];
       const inhFuncs = getAllInherited(className, 'functions');
@@ -662,7 +693,6 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
   }
 
   function renderAttrRow(aName, aVal, fromClass, contextClass, depth) {
-    
     const existence = aVal.existence || '';
     const isMandatory = existence.startsWith('1');
     const types = aVal.type || [];
@@ -670,146 +700,109 @@ window._selectSpec = function(inlineKey, specKey, value, specDepth) {
     const containerType = types.length > 1 ? types[0] : '';
 
     const excluded = ["Ordered", "Any", "Ordered_Numeric", "String"];
-    const canExpand = primaryType && data[primaryType] && (data[primaryType].attributes || (data[primaryType].inherit && !excluded.includes(data[primaryType].inherit) ));
+    const canExpand = primaryType && vdata()[primaryType] && (vdata()[primaryType].attributes || (vdata()[primaryType].inherit && !excluded.includes(vdata()[primaryType].inherit)));
 
     const inlineKey = contextClass + '|' + aName + '|' + depth;
     const isExpanded = expandedInline[inlineKey];
 
-    
-
-    let html = `<div class="attr-row${fromClass ? ' inherited' : ''}" data-attr="${escapeHtml(aName)}" data-parenttype ="${contextClass.split(">").pop()}" data-mytype = "${primaryType}" data-kind="attr" data-from="${fromClass || ''}" onclick="window._selectAttr(this)">`;
+    let html = `<div class="attr-row${fromClass ? ' inherited' : ''}" data-attr="${escapeHtml(aName)}" data-parenttype="${contextClass.split('>').pop()}" data-mytype="${primaryType}" data-kind="attr" data-from="${fromClass || ''}" onclick="window._selectAttr(this)">`;
     if (canExpand) {
       html += `<span id="span_${escapeHtml(inlineKey)}" class="attr-expand-btn${isExpanded ? ' open' : ''}" onclick="event.stopPropagation(); window._toggleInline('${escapeHtml(inlineKey)}', '${escapeHtml(primaryType)}', this)">▶</span>`;
-
     } else {
       html += `<span class="attr-expand-btn placeholder">▶</span>`;
     }
-    html += `<span class="attr-name">${highlightText(aName, searchTerm)}</span>`;
-    
-
+    html += `<span class="attr-name">${highlightText(aName)}</span>`;
     html += `<span class="attr-existence ${isMandatory ? 'mandatory' : 'optional'}">${existence}</span>`;
 
     let typeHtml = '';
-    /*if (containerType) typeHtml += escapeHtml(containerType) + '&lt;';*/
-
-    if (containerType) typeHtml += `<a onclick="event.stopPropagation(); window._nav('${containerType}')">${escapeHtml(containerType)}</a>` + '&lt;';
-
-    if (data[primaryType]) {
-      typeHtml += `<a onclick="event.stopPropagation(); window._nav('${primaryType}')">${highlightText(primaryType, searchTerm)}</a>`;
+    if (containerType) typeHtml += `<a onclick="event.stopPropagation(); window._nav('${containerType}')">${escapeHtml(containerType)}</a>&lt;`;
+    if (vdata()[primaryType]) {
+      typeHtml += `<a onclick="event.stopPropagation(); window._nav('${primaryType}')">${highlightText(primaryType)}</a>`;
     } else {
-      typeHtml += highlightText(primaryType, searchTerm);
+      typeHtml += highlightText(primaryType);
     }
-
-
     if (containerType) typeHtml += '&gt;';
     html += `<span class="attr-type">${typeHtml}</span>`;
 
-    let specializations = []
-    if (data[primaryType]){
-      if (data[primaryType].abstract){
-        specializations = data[primaryType].specialization;
-      }
-    }
-
-   
-
-    if (data[primaryType]){
-      html+=`${data[primaryType].abstract ? `<span class="class-tag tag-abstract" style="font-size:8pt;">Abstract</span>`: '' }`
+    if (vdata()[primaryType]) {
+      html += `${vdata()[primaryType].abstract ? `<span class="class-tag tag-abstract" style="font-size:8pt;">Abstract</span>` : ''}`;
     }
     if (fromClass) {
       html += `<span class="attr-from">from <a onclick="event.stopPropagation(); window._nav('${fromClass}')">${escapeHtml(fromClass)}</a></span>`;
     }
-  
     html += '</div>';
 
- // Inline expanded children
-if (isExpanded && canExpand) {
-  let expandType = primaryType;
-  if (containerType === "DV_INTERVAL") {
-    expandType = "DV_INTERVAL";
-  }
-  if (containerType === "HISTORY") {
-    expandType = "HISTORY";
-  }
-  html += `<div class="inline-children">`;
+    if (isExpanded && canExpand) {
+      let expandType = primaryType;
+      if (containerType === "DV_INTERVAL") expandType = "DV_INTERVAL";
+      if (containerType === "HISTORY") expandType = "HISTORY";
+      html += `<div class="inline-children">`;
 
-  // Keep prompting as long as the current type is abstract
-  let specDepth = 0;
-  while (data[expandType] 
-         && data[expandType].abstract 
-         && data[expandType].specialization 
-         && data[expandType].specialization.length > 0) {
+      let specDepth = 0;
+      while (vdata()[expandType]
+             && vdata()[expandType].abstract
+             && vdata()[expandType].specialization
+             && vdata()[expandType].specialization.length > 0) {
 
-    const selectedKey = inlineKey + '|spec' + specDepth;
-    const selectedSpec = expandedInlineSpec[selectedKey] || '';
+        const selectedKey = inlineKey + '|spec' + specDepth;
+        const selectedSpec = expandedInlineSpec[selectedKey] || '';
 
-    html += `<div class="inline-class-label">${escapeHtml(expandType)} is abstract — choose a specialization:</div>`;
-    html += `<select class="spec-selector" onchange="event.stopPropagation(); window._selectSpec('${escapeHtml(inlineKey)}', '${escapeHtml(selectedKey)}', this.value, ${specDepth})">`;
-    html += `<option value="">— select specialization —</option>`;
-    html += `<option value="${escapeHtml(expandType)}"${selectedSpec === expandType ? ' selected' : ''}>${escapeHtml(expandType)} (abstract)</option>`;
+        html += `<div class="inline-class-label">${escapeHtml(expandType)} is abstract — choose a specialization:</div>`;
+        html += `<select class="spec-selector" onchange="event.stopPropagation(); window._selectSpec('${escapeHtml(inlineKey)}', '${escapeHtml(selectedKey)}', this.value, ${specDepth})">`;
+        html += `<option value="">— select specialization —</option>`;
+        html += `<option value="${escapeHtml(expandType)}"${selectedSpec === expandType ? ' selected' : ''}>${escapeHtml(expandType)} (abstract)</option>`;
+        for (const spec of vdata()[expandType].specialization) {
+          if (vdata()[spec]) {
+            const tag = vdata()[spec].abstract ? ' (abstract)' : '';
+            html += `<option value="${escapeHtml(spec)}"${selectedSpec === spec ? ' selected' : ''}>${escapeHtml(spec)}${tag}</option>`;
+          }
+        }
+        html += `</select>`;
 
-    for (const spec of data[expandType].specialization) {
-      if (data[spec]) {
-        const tag = data[spec].abstract ? ' (abstract)' : '';
-        html += `<option value="${escapeHtml(spec)}"${selectedSpec === spec ? ' selected' : ''}>${escapeHtml(spec)}${tag}</option>`;
+        if (!selectedSpec || !vdata()[selectedSpec]) {
+          html += `</div>`;
+          return html;
+        }
+        if (selectedSpec === expandType) break;
+        expandType = selectedSpec;
+        specDepth++;
       }
+
+      html += `<div class="inline-class-label">${escapeHtml(expandType)} attributes:</div>`;
+      const childClass = vdata()[expandType];
+      let childAttrs = childClass.attributes ? Object.entries(childClass.attributes) : [];
+      let childInhAttrs = getAllInherited(expandType, 'attributes');
+
+      if (childAttrs.length) {
+        childAttrs = childAttrs.map(item => {
+          const val = Array.isArray(item) ? item[1] : item.val;
+          let replaceType = primaryType;
+          if (primaryType === "EVENT") replaceType = "ITEM_STRUCTURE";
+          if (primaryType === "ORIGINAL_VERSION") replaceType = "T";
+          const newVal = { ...val, type: val.type.map(t => t === "T" ? replaceType : t) };
+          return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
+        });
+      }
+      if (childInhAttrs.length) {
+        childInhAttrs = childInhAttrs.map(item => {
+          const val = Array.isArray(item) ? item[1] : item.val;
+          let replaceType = primaryType;
+          if (primaryType === "EVENT") replaceType = "ITEM_STRUCTURE";
+          if (primaryType === "ORIGINAL_VERSION") replaceType = "T";
+          const newVal = { ...val, type: val.type.map(t => t === "T" ? replaceType : t) };
+          return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
+        });
+      }
+
+      for (const [cName, cVal] of childAttrs) {
+        html += renderAttrRow(cName, cVal, null, contextClass + '>' + expandType, depth + 1);
+      }
+      for (const item of childInhAttrs) {
+        html += renderAttrRow(item.name, item.val, item.from, contextClass + '>' + expandType, depth + 1);
+      }
+      html += '</div>';
     }
-    html += `</select>`;
-
-    if (!selectedSpec || !data[selectedSpec]) {
-      // Nothing selected yet — stop, don't render attributes
-      html += `</div>`;
-      return html;
-    }
-
-    // User picked the abstract itself — break out and show its own attrs
-    if (selectedSpec === expandType) {
-      break;
-    }
-
-    // Move to the selected type — if it's also abstract, the while loop continues
-    expandType = selectedSpec;
-    specDepth++;
-  }
-
-  // We've reached a concrete type (or user chose to view abstract's own attrs)
-  html += `<div class="inline-class-label">${escapeHtml(expandType)} attributes:</div>`;
-  const childClass = data[expandType];
-  let childAttrs = childClass.attributes ? Object.entries(childClass.attributes) : [];
-  let childInhAttrs = getAllInherited(expandType, 'attributes');
-
-  if (childAttrs && childAttrs != []) {
-    childAttrs = childAttrs.map(item => {
-      const val = Array.isArray(item) ? item[1] : item.val;
-      replaceType = primaryType;
-      if(primaryType=="EVENT"){replaceType="ITEM_STRUCTURE";}
-      if(primaryType=="ORIGINAL_VERSION"){replaceType="T";}
-      
-      const newVal = { ...val, type: val.type.map(t => t === "T" ? replaceType : t) };
-      return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
-    });
-  }
-
-  if (childInhAttrs && childInhAttrs != []) {
-    childInhAttrs = childInhAttrs.map(item => {
-      const val = Array.isArray(item) ? item[1] : item.val;
-            replaceType = primaryType;
-      if(primaryType=="EVENT"){replaceType="ITEM_STRUCTURE";}
-      if(primaryType=="ORIGINAL_VERSION"){replaceType="T";}
-      const newVal = { ...val, type: val.type.map(t => t === "T" ? replaceType : t) };
-      return Array.isArray(item) ? [item[0], newVal] : { ...item, val: newVal };
-    });
-  }
-
-  for (const [cName, cVal] of childAttrs) {
-    html += renderAttrRow(cName, cVal, null, contextClass + '>' + expandType, depth + 1);
-  }
-  for (const item of childInhAttrs) {
-    html += renderAttrRow(item.name, item.val, item.from, contextClass + '>' + expandType, depth + 1);
-  }
-  html += '</div>';
-}
-return html;
+    return html;
   }
 
   function renderFuncRow(fName, fVal, fromClass) {
@@ -821,11 +814,11 @@ return html;
 
     let html = `<div class="attr-row${fromClass ? ' inherited' : ''}" data-attr="${escapeHtml(fName)}" data-kind="func" data-parenttype="${currentClass}" data-from="${fromClass || ''}" onclick="window._selectAttr(this)">`;
     html += `<span class="attr-expand-btn placeholder">▶</span>`;
-    html += `<span class="attr-name" style="font-style:italic">ƒ ${highlightText(fName, searchTerm)}</span>`;
+    html += `<span class="attr-name" style="font-style:italic">ƒ ${highlightText(fName)}</span>`;
     html += `<span class="attr-existence ${isMandatory ? 'mandatory' : 'optional'}">${existence}</span>`;
     let typeHtml = '→ ';
     if (containerRet) typeHtml += escapeHtml(containerRet) + '&lt;';
-    if (data[primaryRet]) {
+    if (vdata()[primaryRet]) {
       typeHtml += `<a onclick="event.stopPropagation(); window._nav('${primaryRet}')">${escapeHtml(primaryRet)}</a>`;
     } else {
       typeHtml += escapeHtml(primaryRet);
@@ -850,16 +843,13 @@ return html;
     const name = el.dataset.attr;
     const from = el.dataset.from;
     const parentClass = el.dataset.parenttype;
-    /*const c = data[currentClass];*/
-    const c = data[parentClass];
-
+    const c = vdata()[parentClass];
     if (!c) return;
 
     let item;
     if (kind === 'attr') {
       item = (c.attributes && c.attributes[name]) || null;
-      if (!item && from && data[from]) item = data[from].attributes && data[from].attributes[name];
-      // Also check inherited
+      if (!item && from && vdata()[from]) item = vdata()[from].attributes && vdata()[from].attributes[name];
       if (!item) {
         const inh = getAllInherited(parentClass, 'attributes');
         const found = inh.find(i => i.name === name);
@@ -867,7 +857,7 @@ return html;
       }
     } else {
       item = (c.functions && c.functions[name]) || null;
-      if (!item && from && data[from]) item = data[from].functions && data[from].functions[name];
+      if (!item && from && vdata()[from]) item = vdata()[from].functions && vdata()[from].functions[name];
       if (!item) {
         const inh = getAllInherited(parentClass, 'functions');
         const found = inh.find(i => i.name === name);
@@ -877,19 +867,17 @@ return html;
     if (!item) { rc.innerHTML = '<div class="empty-state">No details available</div>'; return; }
 
     let html = '';
-    html += `<div class="detail-label">Name</div><div class="detail-value">${kind === 'func' ? 'ƒ ' : ''}${highlightText(name, searchTerm)}</div>`;
+    html += `<div class="detail-label">Name</div><div class="detail-value">${kind === 'func' ? 'ƒ ' : ''}${highlightText(name)}</div>`;
     if (item.description) {
-      html += `<div class="detail-label">Description</div><div class="detail-value">${highlightText(item.description, searchTerm)}</div>`;
+      html += `<div class="detail-label">Description</div><div class="detail-value">${highlightText(item.description)}</div>`;
     }
     html += `<div class="detail-label">Existence</div><div class="detail-value">${item.existence || '—'}</div>`;
     if (kind === 'attr' && item.type) {
       const types = item.type;
       const primary = types.length > 1 ? types[1] : types[0];
       const container = types.length > 1 ? types[0] : '';
-      /*let tHtml = container ? escapeHtml(container) + '&lt;' : '';*/
-      let tHtml = container ? `<a onclick="window._nav('${container}')">${escapeHtml(container)}</a>&lt;` : escapeHtml(container) ;
-
-      tHtml += data[primary] ? `<a onclick="window._nav('${primary}')">${escapeHtml(primary)}</a>` : escapeHtml(primary);
+      let tHtml = container ? `<a onclick="window._nav('${container}')">${escapeHtml(container)}</a>&lt;` : '';
+      tHtml += vdata()[primary] ? `<a onclick="window._nav('${primary}')">${escapeHtml(primary)}</a>` : escapeHtml(primary);
       if (container) tHtml += '&gt;';
       html += `<div class="detail-label">Data Type</div><div class="detail-value">${tHtml}</div>`;
     }
@@ -897,9 +885,8 @@ return html;
       const types = item.return_type;
       const primary = types.length > 1 ? types[1] : types[0];
       const container = types.length > 1 ? types[0] : '';
-      /*let tHtml = container ? escapeHtml(container) + '&lt;' : '';*/activeSearchFields
-      let tHtml = container ? `<a onclick="window._nav('${container}')">${escapeHtml(container)}</a>&lt;` : escapeHtml(container);
-      tHtml += data[primary] ? `<a onclick="window._nav('${primary}')">${escapeHtml(primary)}</a>` : escapeHtml(primary);
+      let tHtml = container ? `<a onclick="window._nav('${container}')">${escapeHtml(container)}</a>&lt;` : '';
+      tHtml += vdata()[primary] ? `<a onclick="window._nav('${primary}')">${escapeHtml(primary)}</a>` : escapeHtml(primary);
       if (container) tHtml += '&gt;';
       html += `<div class="detail-label">Return Type</div><div class="detail-value">${tHtml}</div>`;
     }
@@ -950,8 +937,8 @@ return html;
   document.addEventListener('keydown', (e) => {
     if (e.key === 'k' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); searchInput.focus(); return; }
     if (e.key === '/' && document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); return; }
-    if ((e.key === 'ArrowLeft' && e.altKey)) { e.preventDefault(); document.getElementById('backBtn').click(); return; }
-    if ((e.key === 'ArrowRight' && e.altKey)) { e.preventDefault(); document.getElementById('fwdBtn').click(); return; }
+    if (e.key === 'ArrowLeft' && e.altKey) { e.preventDefault(); document.getElementById('backBtn').click(); return; }
+    if (e.key === 'ArrowRight' && e.altKey) { e.preventDefault(); document.getElementById('fwdBtn').click(); return; }
     if (document.activeElement === searchInput || document.activeElement.tagName === 'INPUT') {
       const filtered = document.getElementById('classList')._filtered || [];
       if (e.key === 'ArrowDown') { e.preventDefault(); listHighlightIdx = Math.min(listHighlightIdx + 1, filtered.length - 1); renderList(); }
